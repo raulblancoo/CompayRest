@@ -10,7 +10,24 @@ import lombok.Data;
 public class UserModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name="id")
+    private long id;
+
+    @Column(name="name")
     private String name;
+
+    @Column(name="surname")
+    private String surname;
+
+    @Column(name="username")
+    private String username;
+
+    @Column(/*unique=true, */name="email")
     private String email;
+
+    @Column(name="password")
+    private String password;
+
+    @Column(name="avatarURL")
+    private String avatarURL;
 }
