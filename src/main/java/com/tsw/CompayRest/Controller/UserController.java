@@ -3,7 +3,6 @@ package com.tsw.CompayRest.Controller;
 
 import com.tsw.CompayRest.Model.UserModel;
 import com.tsw.CompayRest.Repository.UserRepository;
-import lombok.Data;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
