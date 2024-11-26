@@ -3,12 +3,13 @@ package com.tsw.CompayRest.Controller;
 
 import com.tsw.CompayRest.Model.UserModel;
 import com.tsw.CompayRest.Repository.UserRepository;
+import lombok.Data;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/users")
 public class UserController {
     private final UserRepository userRepository;
 
@@ -24,5 +25,15 @@ public class UserController {
     @PostMapping
     public UserModel createUser(@RequestBody UserModel user) {
         return userRepository.save(user);
+    }
+
+    @PutMapping
+    public UserModel updateUser(@RequestBody UserModel user) {
+        return userRepository.save(user);
+    }
+
+    @DeleteMapping
+    public void deleteUser(@RequestBody UserModel user) {
+        userRepository.delete(user);
     }
 }
