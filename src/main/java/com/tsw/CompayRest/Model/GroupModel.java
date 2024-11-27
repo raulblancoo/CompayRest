@@ -1,24 +1,24 @@
 package com.tsw.CompayRest.Model;
 
+import com.tsw.CompayRest.Enum.Currency;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Data
+import java.util.Set;
+
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Data
 @Entity
 @Table(name="groups")
-@Getter
-@Setter
 public class GroupModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="id")
     private long id;
 
-    @Column(name="groupName")
-    private String groupName;
+    @Column(name="groupname")
+    private String group_name;
 
     @Column(name="imgURL")
     private String imgURL;
@@ -26,7 +26,15 @@ public class GroupModel {
     @Column(name="amount")
     private double amount;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     @Column(name="currency")
-    private String currency;
+    private Currency currency;
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "group_members",
+            joinColumns = @JoinColumn(name = "group_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<UserModel> users;
 }

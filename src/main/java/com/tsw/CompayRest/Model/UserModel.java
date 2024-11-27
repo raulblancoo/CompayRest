@@ -1,8 +1,8 @@
 package com.tsw.CompayRest.Model;
 
 import jakarta.persistence.*;
-
 import lombok.*;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,7 +25,7 @@ public class UserModel {
     @Column(name="username")
     private String username;
 
-    @Column(/*unique=true, */name="email")
+    @Column(name="email")
     private String email;
 
     @Column(name="password")
@@ -33,5 +33,10 @@ public class UserModel {
 
     @Column(name="avatarURL")
     private String avatarURL;
-}
 
+    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private Set<GroupModel> groups;
+
+    @OneToMany(mappedBy = "destinyUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ExpenseShareModel> expenseShares;
+}

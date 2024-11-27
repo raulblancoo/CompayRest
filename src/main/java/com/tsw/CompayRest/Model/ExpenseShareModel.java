@@ -1,30 +1,28 @@
 package com.tsw.CompayRest.Model;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Data
 @Entity
-@Table(name="expenses_share")
+@Table(name = "expenses_share")
 public class ExpenseShareModel {
 
-    @Column(name="id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @Column(name = "id")
+    private Long id;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
-    private ExpensesModel expense;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "expense_id", nullable = false)
+    private ExpenseModel expense;
 
-    @ManyToOne(cascade = CascadeType.MERGE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "destiny_user_id", nullable = false)
     private UserModel destinyUser;
 
+    @Column(name = "assigned_amount", nullable = false)
+    private double assignedAmount;
 }
-
