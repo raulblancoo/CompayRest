@@ -1,5 +1,6 @@
 package com.tsw.CompayRest.Controller;
 
+import com.tsw.CompayRest.Dto.NewUserDto;
 import com.tsw.CompayRest.Dto.UserDto;
 import com.tsw.CompayRest.Service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto createUser(@RequestBody UserDto user) {
+    public UserDto createUser(@RequestBody NewUserDto user) {
         // TODO: comprobar si queremos que se puedan incluír varios usuarios con los mismos datos (email)
         return userService.saveUser(user);
     }

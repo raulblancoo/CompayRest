@@ -1,14 +1,16 @@
 package com.tsw.CompayRest.Service.Impl;
 
+import com.tsw.CompayRest.Dto.NewUserDto;
 import com.tsw.CompayRest.Dto.UserDto;
+import com.tsw.CompayRest.Mapper.NewUserMapper;
 import com.tsw.CompayRest.Mapper.UserMapper;
-import com.tsw.CompayRest.Model.UserModel;
 import com.tsw.CompayRest.Repository.UserRepository;
 import com.tsw.CompayRest.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 
 @Service
@@ -16,11 +18,13 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final NewUserMapper newUserMapper;
 
     @Override
-    public UserDto saveUser(UserDto userDto){
-        userRepository.save(userMapper.toNewEntity(userDto, userDto.getPassword()));
-        return userDto;
+    public UserDto saveUser(NewUserDto newUser){
+        UserDto user = userMapper.toDto(userRepository.save(newUserMapper.toNewEntity(newUser, newUser.getPassword())));
+        user.setGroups(Set.of());
+        return user;
     }
 
     @Override
