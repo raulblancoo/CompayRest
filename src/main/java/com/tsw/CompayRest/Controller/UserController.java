@@ -1,64 +1,56 @@
 package com.tsw.CompayRest.Controller;
 
-
-import com.tsw.CompayRest.Model.UserModel;
-import com.tsw.CompayRest.Repository.UserRepository;
+import com.tsw.CompayRest.Dto.UserDto;
+import com.tsw.CompayRest.Service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private final UserService userService;
 
-    private final UserRepository userRepository;
+    // TODO-GENERAL: queremos devolver los Dtos o los códigos HTTP correspondientes a la consulta?
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping
-    public List<UserModel> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserDto> getAllUsers() {
+        return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserModel> getUserById(@PathVariable Long id) {
-        Optional<UserModel> user = userRepository.findById(id);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public UserModel createUser(@RequestBody UserModel user) {
-        return userRepository.save(user);
+    public UserDto createUser(@RequestBody UserDto user) {
+        // TODO: comprobar si queremos que se puedan incluír varios usuarios con los mismos datos (email)
+        return userService.saveUser(user);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserModel> updateUser(@PathVariable Long id, @RequestBody UserModel updatedUser) {
-        Optional<UserModel> userOptional = userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            UserModel user = userOptional.get();
-            user.setName(updatedUser.getName());
-            user.setSurname(updatedUser.getSurname());
-            user.setUsername(updatedUser.getUsername());
-            user.setEmail(updatedUser.getEmail());
-            user.setPassword(updatedUser.getPassword());
-            user.setAvatarURL(updatedUser.getAvatarURL());
-            return ResponseEntity.ok(userRepository.save(user));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserDto updatedUser) {
+        // TODO: comprobar si cada vez que queremos actualizar un usuario queremos pasarle todos los campos o solo los que queramos cambiar
+        return userService.updateUser(id, updatedUser)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
+        // TODO: mirar si la respuesta debería ser solo los códigos (Imagino que si)
+        boolean deleted = userService.deleteUser(id);
+        if (deleted) {
+            return ResponseEntity.noContent().build(); // HTTP 204
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound().build();  // HTTP 404
         }
     }
 }
