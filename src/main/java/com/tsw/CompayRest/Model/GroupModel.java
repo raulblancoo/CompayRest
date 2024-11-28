@@ -17,7 +17,7 @@ public class GroupModel {
     @Column(name="id")
     private long id;
 
-    @Column(name="groupname")
+    @Column(name="group_name")
     private String group_name;
 
     @Column(name="imgURL")
