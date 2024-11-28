@@ -2,8 +2,6 @@ package com.tsw.CompayRest.Dto;
 
 import lombok.Data;
 
-import java.util.Set;
-
 @Data
 public class GroupDto {
     private Long id;

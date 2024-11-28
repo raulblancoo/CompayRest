@@ -3,7 +3,6 @@ package com.tsw.CompayRest.Service.Impl;
 import com.tsw.CompayRest.Dto.GroupDto;
 import com.tsw.CompayRest.Enum.Currency;
 import com.tsw.CompayRest.Mapper.GroupMapper;
-import com.tsw.CompayRest.Mapper.UserMapper;
 import com.tsw.CompayRest.Repository.GroupRepository;
 import com.tsw.CompayRest.Service.GroupService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import java.util.Optional;
 public class GroupServiceImpl implements GroupService {
     private final GroupRepository groupRepository;
     private final GroupMapper groupMapper;
-    private final UserMapper userMapper;
 
     @Override
     public GroupDto saveGroup(GroupDto group) {
