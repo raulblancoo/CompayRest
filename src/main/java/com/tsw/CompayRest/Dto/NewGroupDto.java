@@ -2,14 +2,14 @@ package com.tsw.CompayRest.Dto;
 
 import lombok.Data;
 
-import java.util.Set;
+import java.util.List;
 
 @Data
-public class GroupDto {
+public class NewGroupDto {
     private Long id;
     private String group_name;
     private String currency;
     private double amount;
     private String imgURL;
-//    private Set<UserDto> users;
+    private List<String> userEmails;
 }

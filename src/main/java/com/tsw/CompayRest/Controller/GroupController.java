@@ -1,6 +1,7 @@
 package com.tsw.CompayRest.Controller;
 
 import com.tsw.CompayRest.Dto.GroupDto;
+import com.tsw.CompayRest.Dto.NewGroupDto;
 import com.tsw.CompayRest.Service.GroupService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class GroupController {
     }
 
     @PostMapping
-    public GroupDto createGroup(@RequestBody GroupDto group) {
+    public GroupDto createGroup(@RequestBody NewGroupDto group) {
         return groupService.saveGroup(group);
     }
 

@@ -30,11 +30,14 @@ public class GroupModel {
     @Column(name="currency")
     private Currency currency;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "group_members",
-            joinColumns = @JoinColumn(name = "group_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<UserModel> users;
+//    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+//    @JoinTable(
+//            name = "group_members",
+//            joinColumns = @JoinColumn(name = "group_id"),
+//            inverseJoinColumns = @JoinColumn(name = "user_id")
+//    )
+//    private Set<UserModel> users;
+
+//    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private Set<GroupMemberModel> members;
 }

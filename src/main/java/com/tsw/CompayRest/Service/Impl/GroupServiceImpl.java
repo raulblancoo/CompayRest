@@ -1,15 +1,16 @@
 package com.tsw.CompayRest.Service.Impl;
 
 import com.tsw.CompayRest.Dto.GroupDto;
+import com.tsw.CompayRest.Dto.NewGroupDto;
 import com.tsw.CompayRest.Enum.Currency;
 import com.tsw.CompayRest.Mapper.GroupMapper;
 import com.tsw.CompayRest.Repository.GroupRepository;
 import com.tsw.CompayRest.Service.GroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -18,9 +19,17 @@ public class GroupServiceImpl implements GroupService {
     private final GroupMapper groupMapper;
 
     @Override
-    public GroupDto saveGroup(GroupDto group) {
-        groupRepository.save(groupMapper.toEntity(group));
-        return group;
+    public GroupDto saveGroup(NewGroupDto newGroup) {
+        // TODO: solo haría falta el NewGroup si al crear un grupo tuviera que tener ciertos emails asociados
+        List<String> emailsList = newGroup.getUserEmails();
+
+        GroupDto group = new GroupDto();
+        group.setGroup_name(newGroup.getGroup_name());
+        group.setAmount(newGroup.getAmount());
+        group.setImgURL(newGroup.getImgURL());
+        group.setCurrency(newGroup.getCurrency());
+
+        return groupMapper.toDto(groupRepository.save(groupMapper.toEntity(group)));
     }
 
     @Override
