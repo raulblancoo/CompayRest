@@ -2,9 +2,8 @@ package com.tsw.CompayRest.Model;
 
 import com.tsw.CompayRest.Enum.ShareMethod;
 import jakarta.persistence.*;
-        import lombok.*;
-
-        import java.util.Date;
+import lombok.*;
+import java.util.Date;
 import java.util.Set;
 
 @NoArgsConstructor
