@@ -43,7 +43,6 @@ public class GroupController {
         }
     }
 
-
     @PostMapping
     public GroupDto createGroup(@PathVariable("userId") Long userId, @RequestBody NewGroupDto group) {
         Optional<UserDto> user = userService.getUserById(userId);
