@@ -14,4 +14,5 @@ public interface GroupMemberService {
     boolean deleteGroupMember(Long groupId, UserDto userDto);
     GroupMemberDto getGroupMember(Long groupId, Long memberId);
     List<GroupMemberDto> getAllGroupMembers(Long groupId);
+    List<GroupDto> getGroupsByUserId(Long userId);
 }

@@ -39,7 +39,6 @@ public class GroupServiceImpl implements GroupService {
             existingGroup.setAmount(updatedGroup.getAmount());
             existingGroup.setCurrency(Currency.valueOf(updatedGroup.getCurrency()));
             existingGroup.setImgURL(updatedGroup.getImgURL());
-//            existingGroup.setUsers(userMapper.toSetModel(updatedGroup.getUsers()));
 
             return groupMapper.toDto(groupRepository.save(existingGroup));
         });
