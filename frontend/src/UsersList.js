@@ -5,6 +5,7 @@ function UsersList() {
     const [users, setUsers] = useState([]);
 
     useEffect(() => {
+        console.log("Estoy en use effect")
         api.get("/users").then((response) => {
             setUsers(response.data);
         });
