@@ -6,9 +6,11 @@ import com.tsw.CompayRest.Dto.UserDto;
 import com.tsw.CompayRest.Service.GroupMemberService;
 import com.tsw.CompayRest.Service.GroupService;
 import com.tsw.CompayRest.Service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,8 +28,15 @@ public class GroupMemberController {
     }
 
     @GetMapping
-    public List<GroupMemberDto> getGroupMembers(@PathVariable("groupId") Long groupId) {
-        return groupMemberService.getAllGroupMembers(groupId);
+    public List<UserDto> getGroupMembers(@PathVariable("groupId") Long groupId) {
+        List<GroupMemberDto>  members = groupMemberService.getAllGroupMembers(groupId);
+        List<UserDto> users = new ArrayList<>();
+
+        for(GroupMemberDto member : members) {
+            users.add(member.getUser());
+        }
+
+        return users;
     }
 
     // TODO: comprobar por qué esto no funciona
@@ -38,17 +47,23 @@ public class GroupMemberController {
 //                .orElseGet(() -> ResponseEntity.notFound().build());
 //    }
 
+    // TODO: response de GroupMemberDto o UserDto?
     @PostMapping
-    public GroupMemberDto addGroupMember(@PathVariable Long groupId, UserDto user) {
+    public ResponseEntity<GroupMemberDto> addGroupMember(@PathVariable("groupId") Long groupId, @RequestBody UserDto user) {
+
+        if (user.getId() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
         Optional<UserDto> newUser = userService.getUserById(user.getId());
         Optional<GroupDto> group = groupService.getGroupById(groupId);
 
-        if(newUser.isPresent() && group.isPresent()) {
-            return groupMemberService.saveGroupMember(group.get(), newUser.get());
+        if (newUser.isPresent() && group.isPresent()) {
+            GroupMemberDto savedMember = groupMemberService.saveGroupMember(group.get(), newUser.get());
+            return ResponseEntity.ok(savedMember);
         }
 
-        // TODO: Mirar qué respuesta habría que dar en caso de que no sea posible
-        return null;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
     @DeleteMapping("/{memberId}")
