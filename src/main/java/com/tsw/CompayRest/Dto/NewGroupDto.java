@@ -6,7 +6,6 @@ import java.util.List;
 
 @Data
 public class NewGroupDto {
-    private Long id;
     private String group_name;
     private String currency;
     private double amount;

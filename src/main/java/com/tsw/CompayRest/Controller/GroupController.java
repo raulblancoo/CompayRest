@@ -59,6 +59,8 @@ public class GroupController {
         return savedGroup;
     }
 
+    // TODO: hacer método update
+
     @DeleteMapping("/{groupId}")
     public void deleteGroup(@PathVariable("userId") Long userId, @PathVariable("groupId") Long groupId) {
         // TODO: mirar como hacer la lógica
