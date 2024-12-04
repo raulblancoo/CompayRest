@@ -12,6 +12,7 @@ const App = () => {
         // Función para obtener los datos
         const fetchGroups = async () => {
             try {
+                // TODO: comprobar cómo se haría para pasarle qué usuario eres
                 const response = await axios.get("http://localhost:8080/users/1/groups"); // Cambiar por `fetch` si no usas Axios
                 setGroups(response.data);
                 setLoading(false);
