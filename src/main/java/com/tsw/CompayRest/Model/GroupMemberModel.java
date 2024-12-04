@@ -26,7 +26,7 @@ public class GroupMemberModel {
     private GroupModel group;
 
     @Column(name = "join_date")
-    private LocalDate joinDate;
+    private LocalDate join_date;
 }
 
 

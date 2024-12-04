@@ -54,7 +54,12 @@ public class GroupController {
 
         GroupDto savedGroup = groupService.saveGroup(group);
 
-        groupMemberService.saveGroupMember(savedGroup,userDto);
+        // Nos guardamos siempre a nosotros como miembro
+        groupMemberService.saveGroupMember(savedGroup, userDto);
+
+        for(String email : group.getUserEmails()) {
+            groupMemberService.saveGroupMember(savedGroup, email);
+        }
 
         return savedGroup;
     }

@@ -3,17 +3,17 @@ package com.tsw.CompayRest.Service.Impl;
 import com.tsw.CompayRest.Dto.GroupDto;
 import com.tsw.CompayRest.Dto.GroupMemberDto;
 import com.tsw.CompayRest.Dto.UserDto;
-import com.tsw.CompayRest.Mapper.GroupMapper;
 import com.tsw.CompayRest.Mapper.GroupMemberMapper;
 import com.tsw.CompayRest.Repository.GroupMemberRepository;
 import com.tsw.CompayRest.Service.GroupMemberService;
-import com.tsw.CompayRest.Service.GroupService;
 import com.tsw.CompayRest.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,16 +21,29 @@ public class GroupMemberServiceImpl implements GroupMemberService {
     private final GroupMemberRepository groupMemberRepository;
     private final GroupMemberMapper groupMemberMapper;
     private final UserService userService;
-    private final GroupService groupService;
-    private final GroupMapper groupMapper;
 
     @Override
     public GroupMemberDto saveGroupMember(GroupDto groupDto, UserDto userDto) {
         GroupMemberDto groupMemberDto = new GroupMemberDto();
         groupMemberDto.setUser(userDto);
         groupMemberDto.setGroup(groupDto);
+        groupMemberDto.setJoin_date(LocalDate.now());
 
         return groupMemberMapper.toDto(groupMemberRepository.save(groupMemberMapper.toEntity(groupMemberDto)));
+    }
+
+    @Override
+    public void saveGroupMember(GroupDto groupDto, String email) {
+        GroupMemberDto groupMemberDto = new GroupMemberDto();
+        Optional<UserDto> user = userService.getUserByEmail(email);
+
+        if(user.isPresent()) {
+            groupMemberDto.setUser(user.get());
+            groupMemberDto.setGroup(groupDto);
+            groupMemberDto.setJoin_date(LocalDate.now());
+        }
+
+        groupMemberMapper.toDto(groupMemberRepository.save(groupMemberMapper.toEntity(groupMemberDto)));
     }
 
     @Override
