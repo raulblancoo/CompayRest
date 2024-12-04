@@ -19,7 +19,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public ExpenseDto saveExpense(ExpenseDto expense) {
-        expenseRepository.save(expenseMapper.toEntity(expense));
+        expense.setId(expenseRepository.save(expenseMapper.toEntity(expense)).getId());
         return expense;
     }
 
