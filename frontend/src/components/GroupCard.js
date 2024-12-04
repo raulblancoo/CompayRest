@@ -1,15 +1,17 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-const GroupCard = ({group}) => {
+const GroupCard = ({ group }) => {
     if (!group) return null;
 
-    return (<div className="w-full max-w-sm mx-auto rounded-md shadow-md overflow-hidden">
+    return (
+        <div className="w-full max-w-sm mx-auto rounded-md shadow-md overflow-hidden">
             <div
                 className="flex items-end justify-end h-56 w-full bg-cover"
-                style={{backgroundImage: `url(${group.imgURL})`}}
+                style={{ backgroundImage: `url(${group.imgURL})` }}
             >
-                <a
-                    href={`/group/expenses/${group.id}`}
+                <Link
+                    to={"/expenses"}
                     className="p-2 flex justify-center items-center rounded-full bg-sky-500 text-white mx-5 -mb-4 hover:bg-cyan-700 focus:outline-none focus:bg-blue-500"
                 >
                     <svg
@@ -27,8 +29,7 @@ const GroupCard = ({group}) => {
                         />
                     </svg>
                     <span className="mx-1 uppercase">{group.group_name}</span>
-                    {/*AQUÍ TENDRÍA QUE IR EL MENSAJE DE VER GRUPO*/}
-                </a>
+                </Link>
             </div>
             <div className="px-5 py-3">
                 <h3 className="text-gray-700 uppercase">{group.group_name}</h3>
@@ -37,7 +38,8 @@ const GroupCard = ({group}) => {
                     {group.currency === "EURO" ? "€" : group.currency === "DOLAR" ? "$" : group.currency}
                 </span>
             </div>
-        </div>);
+        </div>
+    );
 };
 
 export default GroupCard;
