@@ -12,5 +12,6 @@ public interface ExpenseService {
     Optional<ExpenseDto> updateExpense(Long expenseId,ExpenseDto updatedExpense);
     boolean deleteExpense(Long expenseId);
     List<ExpenseDto> getAllExpenses();
+    List<ExpenseDto> getAllExpensesByGroupId(Long groupId);
     Optional<ExpenseDto> getExpenseById(Long expenseId);
 }

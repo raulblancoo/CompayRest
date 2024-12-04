@@ -42,6 +42,11 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    public List<ExpenseDto> getAllExpensesByGroupId(Long groupId) {
+        return expenseMapper.toListDto(expenseRepository.findAllByGroupId(groupId));
+    }
+
+    @Override
     public Optional<ExpenseDto> getExpenseById(Long expenseId) {
         return expenseRepository.findById(expenseId).map(expenseMapper::toDto);
     }
