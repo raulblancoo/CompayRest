@@ -6,6 +6,7 @@ import com.tsw.CompayRest.Model.UserModel;
 import com.tsw.CompayRest.Repository.UserRepository;
 import com.tsw.CompayRest.Service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -16,10 +17,11 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDto saveUser(UserDto userDto){
-        userRepository.save(userMapper.toNewEntity(userDto, userDto.getPassword()));
+        userRepository.save(userMapper.toNewEntity(userDto, passwordEncoder.encode(userDto.getPassword())));
         return userDto;
     }
 
