@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ExpenseRepository extends JpaRepository<ExpenseModel, Long> {
     List<ExpenseModel> findAllByGroupId(Long id);
+//    List<ExpenseModel> findAllByGroupIdOrderByExpense_dateAsc(Long id);
 }
