@@ -96,6 +96,15 @@ export function Login() {
                     )}
                 </div>
             </div>
+
+            <Link to="/groups">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg focus:ring-4 focus:ring-blue-300">
+                    ¡Haz clic aquí!
+                </button>
+            </Link>
         </main>
+
+
+
     );
 }

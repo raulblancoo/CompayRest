@@ -1,4 +1,5 @@
 import {Link} from "react-router-dom";
+import logo from "../assets/compay.svg"
 
 export function Home() {
     return (
@@ -6,8 +7,8 @@ export function Home() {
             <div className="text-center">
                 {/* Logo de ComPay */}
                 <img
-                    src="/frontend/src/favicon.svg"
-                    alt="ComPay Logo"
+                    src={logo}
+                    alt="ComPay"
                     className="w-16 h-16 mx-auto mb-6"
                 />
 

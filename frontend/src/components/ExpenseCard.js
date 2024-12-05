@@ -1,7 +1,7 @@
 import React from 'react';
 
 function ExpenseCard({ expense }) {
-    const { originUser, amount, group, expense_name, users, id } = expense;
+    const { origin_user, amount, group, expense_name, users, id } = expense;
 
     return (
         <div
@@ -9,11 +9,11 @@ function ExpenseCard({ expense }) {
         >
             <img
                 className="hidden md:flex w-9 rounded-full"
-                src={originUser.avatarURL}
-                alt={originUser.username}
+                src={origin_user.avatarURL}
+                alt={origin_user.username}
             />
             <p className="text-gray-700 font-thin sm:me-6">
-                <span className="font-bold uppercase">{originUser.username}</span>
+                <span className="font-bold uppercase">{origin_user.username}</span>
                 <span>{/* Aquí puedes poner el texto que necesites */}</span>
                 <span className="text-green-600 font-bold">
                     {amount} {group.currency === 'EURO' ? '€' : group.currency === 'DOLAR' ? '$' : group.currency}
@@ -66,23 +66,23 @@ function ExpenseCard({ expense }) {
             </button>
 
             {/* Menú desplegable */}
-            <div id={`dropdownDots-${id}`} className="hidden bg-gray-200 divide-y divide-gray-100 rounded-lg shadow w-40">
-                <ul className="py-2 text-sm text-gray-700" aria-labelledby={`dropdownMenuIconButton-${id}`}>
-                    <li>
-                        <a href="#" className="block px-4 py-2 hover:bg-gray-100 hover:text-black">
-                            Editar
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            href={`/group/expenses/delete/${expense.group.id}/${expense.id}`}
-                            className="block px-4 py-2 hover:bg-gray-100 hover:text-black"
-                        >
-                            Eliminar
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            {/*<div id={`dropdownDots-${id}`} className="hidden bg-gray-200 divide-y divide-gray-100 rounded-lg shadow w-40">*/}
+            {/*    <ul className="py-2 text-sm text-gray-700" aria-labelledby={`dropdownMenuIconButton-${id}`}>*/}
+            {/*        <li>*/}
+            {/*            <a href="#" className="block px-4 py-2 hover:bg-gray-100 hover:text-black">*/}
+            {/*                Editar*/}
+            {/*            </a>*/}
+            {/*        </li>*/}
+            {/*        <li>*/}
+            {/*            <a*/}
+            {/*                href={`/group/expenses/delete/${expense.group.id}/${expense.id}`}*/}
+            {/*                className="block px-4 py-2 hover:bg-gray-100 hover:text-black"*/}
+            {/*            >*/}
+            {/*                Eliminar*/}
+            {/*            </a>*/}
+            {/*        </li>*/}
+            {/*    </ul>*/}
+            {/*</div>*/}
         </div>
     );
 }

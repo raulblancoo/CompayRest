@@ -1,6 +1,6 @@
 import React from 'react';
-import ExpenseCard from './ExpenseCard'; // Importa el componente ExpenseCard
-import ExpenseDate from './ExpenseDate'; // Importa el componente ExpenseDate
+import ExpenseCard from './ExpenseCard';
+import ExpenseDate from './ExpenseDate';
 
 function ExpenseList({ expenses }) {
     return (

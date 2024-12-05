@@ -11,7 +11,7 @@ const GroupCard = ({ group }) => {
                 style={{ backgroundImage: `url(${group.imgURL})` }}
             >
                 <Link
-                    to={"/expenses"}
+                    to={`/groups/${group.id}/expenses`} // URL dinámica
                     className="p-2 flex justify-center items-center rounded-full bg-sky-500 text-white mx-5 -mb-4 hover:bg-cyan-700 focus:outline-none focus:bg-blue-500"
                 >
                     <svg
