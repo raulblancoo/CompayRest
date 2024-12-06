@@ -18,8 +18,12 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDto> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        List<UserDto> users = userService.getAllUsers();
+        if (users.isEmpty()) {
+            return ResponseEntity.noContent().build(); // HTTP 204
+        }
+        return ResponseEntity.ok(users); // HTTP 200
     }
 
     @GetMapping("/{id}")
@@ -30,9 +34,10 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto createUser(@RequestBody UserDto user) {
-        // TODO: comprobar si queremos que se puedan incluír varios usuarios con los mismos datos (email)
-        return userService.saveUser(user);
+    public ResponseEntity<UserDto> createUser(@RequestBody UserDto user) {
+        // TODO: validar si se permiten duplicados por email
+        UserDto createdUser = userService.saveUser(user);
+        return ResponseEntity.status(201).body(createdUser); // HTTP 201
     }
 
     @PutMapping("/{id}")
