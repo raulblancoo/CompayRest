@@ -28,8 +28,12 @@ public class GroupController {
     }
 
     @GetMapping
-    public List<GroupDto> getAllGroupsByUserId(@PathVariable("userId") Long userId) {
-        return groupMemberService.getGroupsByUserId(userId);
+    public ResponseEntity<List<GroupDto>> getAllGroupsByUserId(@PathVariable("userId") Long userId) {
+        List<GroupDto> groups = groupMemberService.getGroupsByUserId(userId);
+        if (groups.isEmpty()) {
+            return ResponseEntity.noContent().build(); // HTTP 204
+        }
+        return ResponseEntity.ok(groups); // HTTP 200
     }
 
     @GetMapping("/{groupId}")
@@ -43,32 +47,47 @@ public class GroupController {
         }
     }
 
+    // TODO: comprobar si es del todo correcta, es decir, si las validaciones que no se hacen hacen falta
     @PostMapping
-    public GroupDto createGroup(@PathVariable("userId") Long userId, @RequestBody NewGroupDto group) {
+    public ResponseEntity<GroupDto> createGroup(@PathVariable("userId") Long userId, @RequestBody NewGroupDto group) {
         Optional<UserDto> user = userService.getUserById(userId);
-        UserDto userDto = new UserDto();
 
-        if (user.isPresent()) {
-            userDto = user.get();
+        if (user.isEmpty()) {
+            return ResponseEntity.badRequest().build(); // HTTP 400 si el usuario no existe
         }
 
         GroupDto savedGroup = groupService.saveGroup(group);
 
         // Nos guardamos siempre a nosotros como miembro
-        groupMemberService.saveGroupMember(savedGroup, userDto);
+        groupMemberService.saveGroupMember(savedGroup, user.get());
 
-        for(String email : group.getUserEmails()) {
+        // Agregamos los demás miembros por email
+        for (String email : group.getUserEmails()) {
             groupMemberService.saveGroupMember(savedGroup, email);
         }
 
-        return savedGroup;
+        return ResponseEntity.status(201).body(savedGroup); // HTTP 201
     }
 
-    // TODO: hacer método update
+    // TODO: hacer método update (nuevo DTO?)
 
+
+    // TODO: no hace lo que tiene que hacer
     @DeleteMapping("/{groupId}")
-    public void deleteGroup(@PathVariable("userId") Long userId, @PathVariable("groupId") Long groupId) {
-        // TODO: mirar como hacer la lógica
-    }
+    public ResponseEntity<Void> deleteGroup(@PathVariable("userId") Long userId, @PathVariable("groupId") Long groupId) {
 
+        Optional<UserDto> user = userService.getUserById(userId);
+        if (user.isEmpty()) {
+            return ResponseEntity.notFound().build(); // HTTP 404
+        }
+
+        // Intentar eliminarnos como miembro del grupo
+        try {
+            groupMemberService.deleteGroupMember(groupId, user.get());
+            return ResponseEntity.noContent().build(); // HTTP 204
+        } catch (Exception e) {
+            // Si ocurre un error al borrar nos, retornar un error interno.
+            return ResponseEntity.status(500).build(); // HTTP 500
+        }
+    }
 }
