@@ -13,6 +13,6 @@ public interface GroupMemberService {
     void saveGroupMember(GroupDto groupDto, String email);
     boolean deleteGroupMember(Long groupId, UserDto userDto);
     GroupMemberDto getGroupMember(Long groupId, Long memberId);
-    List<GroupMemberDto> getAllGroupMembers(Long groupId);
+    List<UserDto> getAllGroupMembers(Long groupId);
     List<GroupDto> getGroupsByUserId(Long userId);
 }

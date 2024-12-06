@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,28 +27,30 @@ public class GroupMemberController {
     }
 
     @GetMapping
-    public List<UserDto> getGroupMembers(@PathVariable("groupId") Long groupId) {
-        List<GroupMemberDto>  members = groupMemberService.getAllGroupMembers(groupId);
-        List<UserDto> users = new ArrayList<>();
+    public ResponseEntity<List<UserDto>> getGroupMembers(@PathVariable Long userId, @PathVariable("groupId") Long groupId) {
+        List<UserDto> members = groupMemberService.getAllGroupMembers(groupId);
 
-        for(GroupMemberDto member : members) {
-            users.add(member.getUser());
+        if (members.isEmpty()) {
+            return ResponseEntity.noContent().build(); // HTTP 204
         }
 
-        return users;
+        return ResponseEntity.ok(members); // HTTP 200
     }
 
-    // TODO: comprobar por qué esto no funciona
-//    @GetMapping("/{memberId}")
-//    public ResponseEntity<GroupMemberDto> getSpecificMember(@PathVariable Long groupId, @PathVariable Long memberId) {
-//        return groupMemberService.getGroupMember(groupId,memberId)
-//                .map(ResponseEntity::ok)
-//                .orElseGet(() -> ResponseEntity.notFound().build());
-//    }
+    @GetMapping("/{memberId}")
+    public ResponseEntity<UserDto> getSpecificMember(@PathVariable Long groupId, @PathVariable Long memberId, @PathVariable Long userId) {
+        GroupMemberDto member = groupMemberService.getGroupMember(groupId, memberId);
+
+        if (member == null) {
+            return ResponseEntity.notFound().build(); //HTTP 404
+        }
+
+        return ResponseEntity.ok(member.getUser()); // HTTP 200
+    }
 
     // TODO: response de GroupMemberDto o UserDto?
     @PostMapping
-    public ResponseEntity<GroupMemberDto> addGroupMember(@PathVariable("groupId") Long groupId, @RequestBody UserDto user) {
+    public ResponseEntity<GroupMemberDto> addGroupMember(@PathVariable("groupId") Long groupId, @RequestBody UserDto user, @PathVariable Long userId) {
 
         if (user.getId() == null) {
             return ResponseEntity.badRequest().body(null);
@@ -66,13 +67,22 @@ public class GroupMemberController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
+    // TODO: no funciona correctamente el borrar miembro (NO LO BORRA, service o repository)
     @DeleteMapping("/{memberId}")
-    public ResponseEntity<Void> deleteGroupMember(@PathVariable Long groupId, UserDto user) {
-        boolean deleted = groupMemberService.deleteGroupMember(groupId, user);
-        if(deleted) {
-            return ResponseEntity.noContent().build();
+    public ResponseEntity<Void> deleteGroupMember(@PathVariable Long groupId, @PathVariable Long memberId, @PathVariable Long userId) {
+        GroupMemberDto membership = groupMemberService.getGroupMember(groupId, memberId);
+
+        if (membership == null) {
+            return ResponseEntity.notFound().build(); //HTTP 404
+        }
+
+        boolean deleted = groupMemberService.deleteGroupMember(groupId, membership.getUser());
+
+        if (deleted) {
+            return ResponseEntity.noContent().build(); // HTTP 204
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // HTTP 500
         }
     }
+
 }

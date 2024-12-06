@@ -61,8 +61,15 @@ public class GroupMemberServiceImpl implements GroupMemberService {
     }
 
     @Override
-    public List<GroupMemberDto> getAllGroupMembers(Long groupId) {
-        return groupMemberMapper.toListDto(groupMemberRepository.findAllByGroup_Id(groupId));
+    public List<UserDto> getAllGroupMembers(Long groupId) {
+        List<GroupMemberDto> members = groupMemberMapper.toListDto(groupMemberRepository.findAllByGroup_Id(groupId));
+        List<UserDto> users = new ArrayList<>();
+
+        for(GroupMemberDto member : members) {
+            users.add(member.getUser());
+        }
+
+        return users;
     }
 
     @Override
