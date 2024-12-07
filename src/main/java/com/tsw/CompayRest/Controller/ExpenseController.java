@@ -33,9 +33,16 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public List<ExpenseDto> getAllExpensesByGroupId(@PathVariable("userId") Long userId, @PathVariable("groupId") Long groupId) {
-        return expenseService.getAllExpensesByGroupId(groupId);
+    public ResponseEntity<List<ExpenseDto>> getAllExpensesByGroupId(@PathVariable("userId") Long userId, @PathVariable("groupId") Long groupId) {
+        List<ExpenseDto> expenses = expenseService.getAllExpensesByGroupId(groupId);
+
+        if (expenses.isEmpty()) {
+            return ResponseEntity.noContent().build(); // HTTP 204
+        }
+
+        return ResponseEntity.ok(expenses); // HTTP 200
     }
+
 
     @GetMapping("/{expenseId}")
     public ResponseEntity<ExpenseDto> getExpenseById(@PathVariable("expenseId") Long expenseId) {
@@ -72,12 +79,27 @@ public class ExpenseController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
-//    @PutMapping("/{id}")
-//    public ResponseEntity<ExpenseDto> updateExpense(@PathVariable Long id, @RequestBody ExpenseDto updatedExpense) {
-//        return expenseService.updateExpense(id,updatedExpense)
-//                .map(ResponseEntity::ok)
-//                .orElse(ResponseEntity.notFound().build());
-//    }
+    @PutMapping("/{expenseId}")
+    public ResponseEntity<ExpenseDto> updateExpense(@PathVariable("expenseId") Long expenseId, @RequestBody ExpenseDto updatedExpense) {
+        Optional<ExpenseDto> existingExpense = expenseService.getExpenseById(expenseId);
+
+        if (existingExpense.isPresent()) {
+            ExpenseDto expenseToUpdate = existingExpense.get();
+
+            expenseToUpdate.setExpense_name(updatedExpense.getExpense_name());
+            expenseToUpdate.setAmount(updatedExpense.getAmount());
+            expenseToUpdate.setExpense_date(updatedExpense.getExpense_date());
+            expenseToUpdate.setShare_method(updatedExpense.getShare_method());
+            expenseToUpdate.setOrigin_user(updatedExpense.getOrigin_user());
+            expenseToUpdate.setGroup(updatedExpense.getGroup());
+
+            ExpenseDto savedExpense = expenseService.saveExpense(expenseToUpdate);
+
+            return ResponseEntity.ok(savedExpense);  // HTTP 200 OK
+        }
+
+        return ResponseEntity.notFound().build();  // HTTP 404
+    }
 
     @DeleteMapping("/{expenseId}")
     public ResponseEntity<Void> deleteExpense(@PathVariable("expenseId") Long expenseId) {
