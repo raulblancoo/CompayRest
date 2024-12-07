@@ -2,9 +2,9 @@ package com.tsw.CompayRest.Model;
 
 import com.tsw.CompayRest.Enum.ShareMethod;
 import jakarta.persistence.*;
-        import lombok.*;
+import lombok.*;
 
-        import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 @NoArgsConstructor
@@ -27,7 +27,7 @@ public class ExpenseModel {
 
     @Temporal(TemporalType.DATE)
     @Column(name = "expense_date")
-    private Date expense_date;
+    private LocalDate expense_date;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "origin_user")

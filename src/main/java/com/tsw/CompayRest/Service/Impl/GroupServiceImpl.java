@@ -1,28 +1,41 @@
 package com.tsw.CompayRest.Service.Impl;
 
 import com.tsw.CompayRest.Dto.GroupDto;
+import com.tsw.CompayRest.Dto.NewGroupDto;
 import com.tsw.CompayRest.Enum.Currency;
 import com.tsw.CompayRest.Mapper.GroupMapper;
-import com.tsw.CompayRest.Mapper.UserMapper;
 import com.tsw.CompayRest.Repository.GroupRepository;
 import com.tsw.CompayRest.Service.GroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
+
 
 @Service
 @RequiredArgsConstructor
 public class GroupServiceImpl implements GroupService {
     private final GroupRepository groupRepository;
     private final GroupMapper groupMapper;
-    private final UserMapper userMapper;
+
+    private static final List<String> IMG_URLS = Arrays.asList(
+            "/images/bg1.jpg", "/images/bg2.jpg", "/images/bg3.jpg", "/images/bg4.jpg",
+            "/images/bg5.jpg", "/images/bg6.jpg", "/images/bg7.jpg", "/images/bg8.jpg",
+            "/images/bg9.jpg", "/images/bg10.jpg"
+    );
 
     @Override
-    public GroupDto saveGroup(GroupDto group) {
-        groupRepository.save(groupMapper.toEntity(group));
-        return group;
+    public GroupDto saveGroup(NewGroupDto newGroup) {
+        GroupDto group = new GroupDto();
+        group.setGroup_name(newGroup.getGroup_name());
+        group.setCurrency(newGroup.getCurrency());
+        group.setAmount(0);
+        group.setImgURL(getImageUrl());
+
+        return groupMapper.toDto(groupRepository.save(groupMapper.toEntity(group)));
     }
 
     @Override
@@ -32,7 +45,6 @@ public class GroupServiceImpl implements GroupService {
             existingGroup.setAmount(updatedGroup.getAmount());
             existingGroup.setCurrency(Currency.valueOf(updatedGroup.getCurrency()));
             existingGroup.setImgURL(updatedGroup.getImgURL());
-//            existingGroup.setUsers(userMapper.toSetModel(updatedGroup.getUsers()));
 
             return groupMapper.toDto(groupRepository.save(existingGroup));
         });
@@ -54,5 +66,15 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public Optional<GroupDto> getGroupById(Long groupId) {
         return groupRepository.findById(groupId).map(groupMapper::toDto);
+    }
+
+
+    private String getImageUrl() {
+        return IMG_URLS.get(getRandomNumber(IMG_URLS.size()));
+    }
+
+    private int getRandomNumber(int size) {
+        Random random = new Random();
+        return random.nextInt(size);
     }
 }

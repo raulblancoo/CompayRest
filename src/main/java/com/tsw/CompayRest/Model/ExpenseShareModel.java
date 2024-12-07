@@ -21,7 +21,7 @@ public class ExpenseShareModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "destiny_user_id", nullable = false)
-    private UserModel destinyUser;
+    private UserModel destiny_user;
 
     @Column(name = "assigned_amount", nullable = false)
     private double assignedAmount;

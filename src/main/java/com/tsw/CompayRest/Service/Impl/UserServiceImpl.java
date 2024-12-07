@@ -2,14 +2,13 @@ package com.tsw.CompayRest.Service.Impl;
 
 import com.tsw.CompayRest.Dto.UserDto;
 import com.tsw.CompayRest.Mapper.UserMapper;
-import com.tsw.CompayRest.Model.UserModel;
 import com.tsw.CompayRest.Repository.UserRepository;
 import com.tsw.CompayRest.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
-
 
 @Service
 @RequiredArgsConstructor
@@ -18,9 +17,8 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public UserDto saveUser(UserDto userDto){
-        userRepository.save(userMapper.toNewEntity(userDto, userDto.getPassword()));
-        return userDto;
+    public UserDto saveUser(UserDto user) {
+        return userMapper.toDto(userRepository.save(userMapper.toNewEntity(user,user.getPassword())));
     }
 
     @Override
@@ -53,6 +51,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<UserDto> getUserById(Long id) {
         return userRepository.findById(id).map(userMapper::toDto);
+    }
+
+    @Override
+    public Optional<UserDto> getUserByEmail(String email) {
+        return userRepository.findByEmail(email).map(userMapper::toDto);
     }
 
 

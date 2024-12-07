@@ -11,6 +11,8 @@ public interface UserService {
     UserDto saveUser(UserDto user);
     Optional<UserDto> updateUser(Long id, UserDto updatedUser);
     boolean deleteUser(Long id);
+
     List<UserDto> getAllUsers();
     Optional<UserDto> getUserById(Long id);
+    Optional<UserDto> getUserByEmail(String email);
 }

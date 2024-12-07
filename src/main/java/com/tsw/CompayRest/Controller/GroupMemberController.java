@@ -1,69 +1,88 @@
-//package com.tsw.CompayRest.Controller;
-//
-//import com.tsw.CompayRest.Model.GroupMemberModel;
-//import com.tsw.CompayRest.Model.GroupModel;
-//import com.tsw.CompayRest.Model.UserModel;
-//import com.tsw.CompayRest.Repository.GroupMemberRepository;
-//import com.tsw.CompayRest.Repository.GroupRepository;
-//import com.tsw.CompayRest.Repository.UserRepository;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.*;
-//
-//import java.util.List;
-//import java.util.Optional;
-//
-//@RestController
-//@RequestMapping("/group-members")
-//public class GroupMemberController {
-//
-//    private final GroupMemberRepository groupMembersRepository;
-//    private final UserRepository userRepository;
-//    private final GroupRepository groupRepository;
-//
-//    public GroupMemberController(GroupMemberRepository groupMembersRepository, UserRepository userRepository, GroupRepository groupRepository) {
-//        this.groupMembersRepository = groupMembersRepository;
-//        this.userRepository = userRepository;
-//        this.groupRepository = groupRepository;
-//    }
-//
-//    @GetMapping
-//    public List<GroupMemberModel> getAllGroupMembers() {
-//        return groupMembersRepository.findAll();
-//    }
-//
-//    @GetMapping("/{id}")
-//    public ResponseEntity<GroupMemberModel> getGroupMemberById(@PathVariable Long id) {
-//        Optional<GroupMemberModel> member = groupMembersRepository.findById(id);
-//        if (member.isPresent()) {
-//            return ResponseEntity.ok(member.get());
-//        } else {
-//            return ResponseEntity.notFound().build();
-//        }
-//    }
-//
-//    @PostMapping
-//    public ResponseEntity<GroupMemberModel> addUserToGroup(@RequestParam Long userId, @RequestParam Long groupId) {
-//        Optional<GroupModel> group = groupRepository.findById(groupId);
-//        Optional<UserModel> user = userRepository.findById(userId);
-//
-//        if (user.isPresent() && group.isPresent()) {
-//            GroupMemberModel newMember = new GroupMemberModel();
-//            newMember.setUser(user.get());
-//            newMember.setGroup(group.get());
-//            return ResponseEntity.ok(groupMembersRepository.save(newMember));
-//        } else {
-//            return ResponseEntity.badRequest().build();
-//        }
-//    }
-//
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> removeUserFromGroup(@PathVariable Long id) {
-//        if (groupMembersRepository.existsById(id)) {
-//            groupMembersRepository.deleteById(id);
-//            return ResponseEntity.noContent().build();
-//        } else {
-//            return ResponseEntity.notFound().build();
-//        }
-//    }
-//}
+package com.tsw.CompayRest.Controller;
+
+import com.tsw.CompayRest.Dto.GroupDto;
+import com.tsw.CompayRest.Dto.GroupMemberDto;
+import com.tsw.CompayRest.Dto.UserDto;
+import com.tsw.CompayRest.Service.GroupMemberService;
+import com.tsw.CompayRest.Service.GroupService;
+import com.tsw.CompayRest.Service.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/users/{userId}/groups/{groupId}/members")
+public class GroupMemberController {
+    private final GroupMemberService groupMemberService;
+    private final UserService userService;
+    private final GroupService groupService;
+
+    public GroupMemberController(GroupMemberService groupMemberService, UserService userService, GroupService groupService) {
+        this.groupMemberService = groupMemberService;
+        this.userService = userService;
+        this.groupService = groupService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserDto>> getGroupMembers(@PathVariable Long userId, @PathVariable("groupId") Long groupId) {
+        List<UserDto> members = groupMemberService.getAllGroupMembers(groupId);
+
+        if (members.isEmpty()) {
+            return ResponseEntity.noContent().build(); // HTTP 204
+        }
+
+        return ResponseEntity.ok(members); // HTTP 200
+    }
+
+    @GetMapping("/{memberId}")
+    public ResponseEntity<UserDto> getSpecificMember(@PathVariable Long groupId, @PathVariable Long memberId, @PathVariable Long userId) {
+        GroupMemberDto member = groupMemberService.getGroupMember(groupId, memberId);
+
+        if (member == null) {
+            return ResponseEntity.notFound().build(); //HTTP 404
+        }
+
+        return ResponseEntity.ok(member.getUser()); // HTTP 200
+    }
+
+    // TODO: response de GroupMemberDto o UserDto?
+    @PostMapping
+    public ResponseEntity<GroupMemberDto> addGroupMember(@PathVariable("groupId") Long groupId, @RequestBody UserDto user, @PathVariable Long userId) {
+
+        if (user.getId() == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        Optional<UserDto> newUser = userService.getUserById(user.getId());
+        Optional<GroupDto> group = groupService.getGroupById(groupId);
+
+        if (newUser.isPresent() && group.isPresent()) {
+            GroupMemberDto savedMember = groupMemberService.saveGroupMember(group.get(), newUser.get());
+            return ResponseEntity.ok(savedMember);
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+
+    // TODO: no funciona correctamente el borrar miembro (NO LO BORRA, service o repository)
+    @DeleteMapping("/{memberId}")
+    public ResponseEntity<Void> deleteGroupMember(@PathVariable Long groupId, @PathVariable Long memberId, @PathVariable Long userId) {
+        GroupMemberDto membership = groupMemberService.getGroupMember(groupId, memberId);
+
+        if (membership == null) {
+            return ResponseEntity.notFound().build(); //HTTP 404
+        }
+
+        boolean deleted = groupMemberService.deleteGroupMember(groupId, membership.getUser());
+
+        if (deleted) {
+            return ResponseEntity.noContent().build(); // HTTP 204
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // HTTP 500
+        }
+    }
+
+}

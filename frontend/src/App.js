@@ -1,12 +1,26 @@
-import React from "react";
-import UsersList from "./UsersList";
+import axios from "axios";
+import {HashRouter as Router, Routes, Route } from 'react-router-dom'
+import {Home} from "./pages/home";
+import {Login} from "./pages/login";
+import {Groups} from './pages/groups'
+import {Expense} from "./pages/expense";
+
+import {Layout} from "./Layout";
 
 function App() {
-  return (
-      <div className="App">
-        <UsersList />
-      </div>
-  );
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<Home/>} />
+                <Route path="/login" element={<Login/>} />
+                <Route element={<Layout/>}>
+                    <Route path="/groups" element={<Groups/>} />
+                    <Route path="/groups/:idGroup/expenses" element={<Expense/>} />
+                </Route>
+            </Routes>
+        </Router>
+    )
+
 }
 
 export default App;

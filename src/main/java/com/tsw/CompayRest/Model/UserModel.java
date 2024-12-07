@@ -10,33 +10,33 @@ import java.util.Set;
 @Entity
 @Table(name="users")
 public class UserModel {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name = "id")
     private long id;
 
-    @Column(name="name")
+    @Column(name = "name")
     private String name;
 
-    @Column(name="surname")
+    @Column(name = "surname")
     private String surname;
 
-    @Column(name="username")
+    @Column(name = "username", unique = true)
     private String username;
 
-    @Column(name="email")
+    @Column(name = "email", unique = true)
     private String email;
 
-    @Column(name="password")
+    @Column(name = "password")
     private String password;
 
-    @Column(name="avatarURL")
+    @Column(name = "avatarURL")
     private String avatarURL;
 
-    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    private Set<GroupModel> groups;
-
-    @OneToMany(mappedBy = "destinyUser", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ExpenseShareModel> expenseShares;
+//    // TODO: mirar si realmente lo necesito
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private Set<GroupMemberModel> memberships;
+//    // TODO: mirar si realmente lo necesito
+//    @OneToMany(mappedBy = "destinyUser", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private Set<ExpenseShareModel> expenseShares;
 }
