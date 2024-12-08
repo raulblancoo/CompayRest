@@ -1,9 +1,44 @@
-import {Link} from "react-router-dom";
-import {useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
+import {useEffect, useState} from "react";
+import axios from "axios";
+import '../login.css';
 
 
 export function Login() {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
+    const [surname, setSurname] = useState('');
+    const [email, setEmail] = useState('');
+    const [error, setError] = useState('');
+    const navigate = useNavigate()
     const [isLoginActive, setIsLoginActive] = useState(true);
+
+
+    const handleLogin = async (e) => {
+        e.preventDefault()
+        setError('')
+
+        const loginData = {
+            name,
+            surname,
+            email,
+            username,
+            password
+        }
+        try {
+            const response = await axios.post('http://localhost:8080/login', loginData);
+            if (response.status === 200){
+                navigate('/groups')
+            } else {
+                const errorData = await response.json()
+                setError(errorData.message || 'Login failed for user. Please retry!')
+            }
+        } catch(error) {
+            setError('And error occurred. please retry')
+        }
+
+    }
 
     return (
         <main>
@@ -40,12 +75,16 @@ export function Login() {
                                 type="text"
                                 placeholder="Correo Electrónico"
                                 name="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 required
                             />
                             <input
                                 type="password"
                                 placeholder="Contraseña"
                                 name="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
                             {/* CSRF Token si es necesario */}
@@ -66,29 +105,39 @@ export function Login() {
                                 type="text"
                                 placeholder="Nombre"
                                 name="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 required
                             />
                             <input
                                 type="text"
                                 placeholder="Apellidos"
                                 name="surname"
+                                value={surname}
+                                onChange={(e) => setSurname(e.target.value)}
                                 required
                             />
                             <input
                                 type="email"
                                 placeholder="Correo Electrónico"
                                 name="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                             <input
                                 type="text"
                                 placeholder="Usuario"
                                 name="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                             />
                             <input
                                 type="password"
                                 placeholder="Contraseña"
                                 name="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
                             <button type="submit">Regístrarse</button>
