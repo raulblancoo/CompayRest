@@ -1,9 +1,69 @@
-import {Link} from "react-router-dom";
-import {useState} from "react";
-
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import axios from "axios";
 
 export function Login() {
+    // Estados
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [name, setName] = useState("");
+    const [surname, setSurname] = useState("");
+    const [email, setEmail] = useState("");
+    const [error, setError] = useState("");
     const [isLoginActive, setIsLoginActive] = useState(true);
+
+    const navigate = useNavigate();
+
+    // LOGIN
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError("");
+
+        // Datos que envías al endpoint
+        const loginData = {
+            email,
+            password,
+        };
+
+        try {
+            const response = await axios.post("http://localhost:8080/login", loginData);
+            if (response.status === 200 ||response.status === 201) {
+                // Navega a la ruta '/groups' si el login es exitoso
+                navigate("/groups");
+            } else {
+                // Manejo de error
+                setError("Login failed for user. Please retry!");
+            }
+        } catch (error) {
+            setError("An error occurred. Please retry");
+        }
+    };
+
+    // REGISTER
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        setError("");
+
+        const registerData = {
+            name,
+            surname,
+            email,
+            username,
+            password,
+        };
+
+        try {
+            // Ajusta la URL según tu backend (ej: /register)
+            const response = await axios.post("http://localhost:8080/register", registerData);
+            if (response.status === 200 || response.status === 201) {
+                navigate("/login");
+            } else {
+                setError("Register failed for user. Please retry!");
+            }
+        } catch (error) {
+            setError("An error occurred. Please retry");
+        }
+    };
 
     return (
         <main>
@@ -30,65 +90,72 @@ export function Login() {
                 <div className="contenedor__login-register">
                     {/* Login */}
                     {isLoginActive && (
-                        <form
-                            method="post"
-                            action="/login"
-                            className="formulario__login"
-                        >
+                        <form onSubmit={handleLogin} className="formulario__login">
                             <h2>Iniciar Sesión</h2>
+                            {error && <p style={{ color: "red" }}>{error}</p>}
                             <input
                                 type="text"
                                 placeholder="Correo Electrónico"
-                                name="username"
+                                name="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                             <input
                                 type="password"
                                 placeholder="Contraseña"
                                 name="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
-                            {/* CSRF Token si es necesario */}
-                            {/* <input type="hidden" name="_csrf" value="token_value" /> */}
                             <button type="submit">Entrar</button>
                         </form>
                     )}
 
                     {/* Register */}
                     {!isLoginActive && (
-                        <form
-                            method="post"
-                            action="/register"
-                            className="formulario__register"
-                        >
+                        <form onSubmit={handleRegister} className="formulario__register">
                             <h2>Regístrarse</h2>
+                            {error && <p style={{ color: "red" }}>{error}</p>}
                             <input
                                 type="text"
                                 placeholder="Nombre"
                                 name="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 required
                             />
                             <input
                                 type="text"
                                 placeholder="Apellidos"
                                 name="surname"
+                                value={surname}
+                                onChange={(e) => setSurname(e.target.value)}
                                 required
                             />
                             <input
                                 type="email"
                                 placeholder="Correo Electrónico"
                                 name="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                             <input
                                 type="text"
                                 placeholder="Usuario"
                                 name="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
                             />
                             <input
                                 type="password"
                                 placeholder="Contraseña"
                                 name="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
                             <button type="submit">Regístrarse</button>
@@ -97,14 +164,12 @@ export function Login() {
                 </div>
             </div>
 
+            {/* Enlace a /groups de ejemplo */}
             <Link to="/groups">
                 <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg focus:ring-4 focus:ring-blue-300">
                     ¡Haz clic aquí!
                 </button>
             </Link>
         </main>
-
-
-
     );
 }

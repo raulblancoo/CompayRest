@@ -1,5 +1,6 @@
 package com.tsw.CompayRest.Mapper;
 
+import com.tsw.CompayRest.Dto.SignUpDto;
 import com.tsw.CompayRest.Dto.UserDto;
 import com.tsw.CompayRest.Model.UserModel;
 import org.mapstruct.Mapper;
@@ -18,4 +19,7 @@ public interface UserMapper {
 
     @Mapping(source="password", target="password")
     UserModel toNewEntity(UserDto userDto, String password);
+
+    @Mapping(target = "password", ignore = true)
+    UserModel signUpToUser(SignUpDto signUpDto);
 }
