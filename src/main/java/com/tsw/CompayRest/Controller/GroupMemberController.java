@@ -86,7 +86,7 @@ public class GroupMemberController {
 
     // TODO: no funciona correctamente el borrar miembro (NO LO BORRA, service o repository)
     @DeleteMapping("/{memberId}")
-    public ResponseEntity<Void> deleteGroupMember(@PathVariable Long groupId, @PathVariable Long memberId, @PathVariable Long userId) {
+    public ResponseEntity<HttpStatus> deleteGroupMember(@PathVariable Long groupId, @PathVariable Long memberId, @PathVariable Long userId) {
         GroupMemberDto membership = groupMemberService.getGroupMember(groupId, memberId);
 
         if (membership == null) {
