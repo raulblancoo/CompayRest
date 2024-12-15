@@ -14,5 +14,5 @@ public interface GroupService {
     boolean deleteGroup(Long groupId);
     List<GroupDto> getAllGroups();
     Optional<GroupDto> getGroupById(Long groupId);
-    void updateGroupAmount(Long groupId, double amount);;
+    void updateGroupAmount(Long groupId, double amount);
 }
