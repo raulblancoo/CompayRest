@@ -1,12 +1,12 @@
 -- Inserción de datos para la tabla users
 INSERT INTO users (name, surname, username, email, password, avatarURL) VALUES
-                                                                            ('John', 'Doe', 'johndoe', 'john.doe@example.com', 'password123', 'http://example.com/avatar1.png'),
-                                                                            ('Jane', 'Smith', 'janesmith', 'jane.smith@example.com', 'password456', 'http://example.com/avatar2.png'),
-                                                                            ('Alice', 'Johnson', 'alicej', 'alice.johnson@example.com', 'password789', 'http://example.com/avatar3.png'),
-                                                                            ('Bob', 'Brown', 'bobbrown', 'bob.brown@example.com', 'password321', 'http://example.com/avatar4.png'),
-                                                                            ('Charlie', 'Davis', 'charlied', 'charlie.davis@example.com', 'password654', 'http://example.com/avatar5.png'),
-                                                                            ('Diana', 'Evans', 'dianae', 'diana.evans@example.com', 'password987', 'http://example.com/avatar6.png'),
-                                                                            ('Emily', 'Fox', 'emilyf', 'emily.fox@example.com', 'passwordabc', 'http://example.com/avatar7.png');
+                                                                            ('John', 'Doe', 'johndoe', 'john.doe@example.com', 'password123', 'https://ui-avatars.com/api?name=John+Doe'),
+                                                                            ('Jane', 'Smith', 'janesmith', 'jane.smith@example.com', 'password456', 'https://ui-avatars.com/api?name=Jane+Smith'),
+                                                                            ('Alice', 'Johnson', 'alicej', 'alice.johnson@example.com', 'password789', 'https://ui-avatars.com/api?name=Alice+Johnson'),
+                                                                            ('Bob', 'Brown', 'bobbrown', 'bob.brown@example.com', 'password321', 'https://ui-avatars.com/api?name=Bob+Brown'),
+                                                                            ('Charlie', 'Davis', 'charlied', 'charlie.davis@example.com', 'password654', 'https://ui-avatars.com/api?name=Charlie+Davis'),
+                                                                            ('Diana', 'Evans', 'dianae', 'diana.evans@example.com', 'password987', 'https://ui-avatars.com/api?name=Diana+Evans'),
+                                                                            ('Emily', 'Fox', 'emilyf', 'emily.fox@example.com', 'passwordabc', 'https://ui-avatars.com/api?name=Emily+Fox');
 
 -- Inserción de datos para la tabla groups
 INSERT INTO groups (group_name, imgURL, amount, currency) VALUES
