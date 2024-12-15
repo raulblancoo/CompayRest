@@ -27,13 +27,13 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     };
 
     const calculateShares = () => {
-        const totalAmount = parseFloat(amount);
-        if (isNaN(totalAmount) || totalAmount <= 0) return;
+        const totalAmount = parseFloat(amount); // Convertir a número
+        if (isNaN(totalAmount) || totalAmount <= 0) return; // Validar monto positivo
 
         const selectedCount = selectedMembers.length;
 
         if (shareMethod === "PARTESIGUALES" && selectedCount > 0) {
-            // Calculate equal shares
+            // Reparto en partes iguales
             const equalShare = totalAmount / selectedCount;
             setShares(
                 selectedMembers.reduce((acc, email) => {
@@ -42,23 +42,36 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                 }, {})
             );
         } else if (shareMethod === "PARTESDESIGUALES") {
-            // Custom shares: ensure inputs are valid
+            // Reparto en partes desiguales: conservar valores existentes
             setShares(
                 selectedMembers.reduce((acc, email) => {
-                    acc[email] = shares[email] || 0; // Keep current or default to 0
+                    acc[email] = shares[email] || 0; // Mantener valores previos o asignar 0
                     return acc;
                 }, {})
             );
         } else if (shareMethod === "PORCENTAJES") {
-            // Custom percentages: ensure inputs are valid
-            setShares(
-                selectedMembers.reduce((acc, email) => {
-                    acc[email] = shares[email] || 0; // Keep current or default to 0
-                    return acc;
-                }, {})
-            );
+            // Validar que los porcentajes sumen 100
+            const totalPercentage = selectedMembers.reduce((sum, email) => {
+                return sum + (shares[email] || 0);
+            }, 0);
+
+            if (totalPercentage !== 100) {
+                alert("Los porcentajes deben sumar 100%");
+                return; // Salir de la función si la validación falla
+            }
+
+            // Crear un nuevo objeto con los montos calculados
+            const calculatedShares = selectedMembers.reduce((acc, email) => {
+                const percentage = shares[email] || 0; // Obtener porcentaje del miembro
+                acc[email] = (totalAmount * percentage) / 100; // Calcular monto
+                return acc;
+            }, {});
+
+            // Actualizar el estado de shares con los montos calculados
+            setShares(calculatedShares);
         }
     };
+
 
     useEffect(() => {
         calculateShares();
@@ -72,29 +85,49 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     };
 
     const handleSubmit = () => {
-        // Validate inputs
         const totalAmount = parseFloat(amount);
 
-        if (shareMethod === "PARTESDESIGUALES" &&
-            Object.values(shares).reduce((a, b) => a + b, 0) !== totalAmount) {
-            alert("La suma de las participaciones debe coincidir con el monto total.");
+        // Validar que el monto sea positivo
+        if (isNaN(totalAmount) || totalAmount <= 0) {
+            alert("Por favor, introduce un monto válido.");
             return;
         }
 
-        if (shareMethod === "PORCENTAJES" &&
-            Object.values(shares).reduce((a, b) => a + b, 0) !== 100) {
-            alert("La suma de los porcentajes debe ser igual a 100.");
-            return;
+        let finalShares = { ...shares }; // Por defecto, usar lo que ya esté en shares
+
+        if (shareMethod === "PORCENTAJES") {
+            const totalPercentage = Object.values(shares).reduce((sum, percentage) => sum + percentage, 0);
+
+            if (totalPercentage !== 100) {
+                alert("La suma de los porcentajes debe ser igual a 100.");
+                return;
+            }
+
+            finalShares = Object.keys(shares).reduce((acc, email) => {
+                acc[email] = (totalAmount * shares[email]) / 100;
+                return acc;
+            }, {});
         }
 
+        // Validar que la suma de las participaciones coincida con el monto total para "PARTESDESIGUALES"
+        if (shareMethod === "PARTESDESIGUALES") {
+            const totalShares = Object.values(finalShares).reduce((sum, share) => sum + share, 0);
+            if (totalShares !== totalAmount) {
+                alert("La suma de las participaciones debe coincidir con el monto total.");
+                return;
+            }
+        }
+
+        // Preparar los datos para enviar
         const data = {
             amount: totalAmount,
             expense_name: expenseName,
             originUserId: selectedPayer,
             share_method: shareMethod,
-            shares,
+            shares: finalShares, // Usar los valores calculados
         };
 
+        // Enviar los datos al backend
         onSubmit(data);
         onClose();
     };
@@ -119,7 +152,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                             <option value="">Selecciona un miembro</option>
                             {members.map((member) => (
                                 <option key={member.id} value={member.id}>
-                                    {member.name} {member.surname} ({member.email})
+                                    {member.name} {member.surname}
                                 </option>
                             ))}
                         </select>
@@ -159,10 +192,10 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         />
                     </div>
 
-                    {/* Input: Monto Total */}
+                    {/* Input: Cantidad Total */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">
-                            Monto Total
+                            Cantidad total
                         </label>
                         <input
                             type="number"
@@ -175,7 +208,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                     {/* Selector: Método de Compartición */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">
-                            Método de Compartición
+                            Método de División
                         </label>
                         <select
                             value={shareMethod}
@@ -188,6 +221,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         </select>
                     </div>
 
+                    {/*TODO: cambiar para que muestre los nombres aunque envíe los emails*/}
                     {/* Inputs dinámicos: Según el método de compartición */}
                     {selectedMembers.length > 0 && shareMethod !== "PARTESIGUALES" && (
                         <div className="mb-4">

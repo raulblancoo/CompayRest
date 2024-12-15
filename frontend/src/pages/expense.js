@@ -10,9 +10,8 @@ export function Expense() {
     const { idGroup } = useParams(); // Obtenemos el id del grupo desde la URL
     const [expenses, setExpenses] = useState([]); // Estado para los gastos
     const [loading, setLoading] = useState(true); // Estado para indicar si los datos están cargando
+    const [error, setError] = useState(null);
     const [isModalOpen, setModalOpen] = useState(false); // Estado para controlar la visibilidad del modal
-
-
     const [isExpenseModalOpen, setExpenseModalOpen] = useState(false);
 
     const handleCreateExpense = async (newExpense) => {
@@ -40,41 +39,62 @@ export function Expense() {
     };
 
     useEffect(() => {
-        const url = `http://localhost:8080/users/1/groups/${idGroup}/expenses`;
+        const fetchExpenses = async () => {
+            const url = `http://localhost:8080/users/1/groups/${idGroup}/expenses`;
 
-        fetch(url)
-            .then((response) => {
-                if (!response.ok) {
+            try {
+                const response = await fetch(url);
+
+                if (response.status === 204) {
+                    setExpenses([]); // No hay contenido
+                } else if (response.ok) {
+                    const data = await response.json();
+                    setExpenses(data);
+                } else {
                     throw new Error("Error al obtener los datos");
                 }
-                return response.json();
-            })
-            .then((data) => {
-                setExpenses(data);
+            } catch (error) {
+                console.error("Error:", error);
+                setError(error.message);
+            } finally {
                 setLoading(false);
-            })
-            .catch((error) => console.error("Error:", error));
+            }
+        };
+
+        fetchExpenses();
     }, [idGroup]);
 
-    if (loading) return <p>Cargando...</p>;
-
     return (
-        <div className="p-4">
-            <h1 className="text-2xl font-bold mb-4">Gastos del Grupo {idGroup}</h1>
+        <>
+            <div className="p-4">
+                <h1 className="text-2xl font-bold mb-4">Gastos del Grupo {idGroup}</h1>
 
-            {/* Componente de encabezado */}
-            {/* <ExpenseHeader group={group} /> */}
+                {/* Botones bajo el encabezado */}
+                <ExpenseUnderHeader
+                    onAddMember={() => setModalOpen(true)} // Abre el modal
+                    onShowDebts={() => console.log("Mostrar deudas")} // Agrega tu lógica para mostrar deudas
+                />
 
-            {/* Botones bajo el encabezado */}
-            <ExpenseUnderHeader
-                onAddMember={() => setModalOpen(true)} // Abre el modal
-                onShowDebts={() => console.log("Mostrar deudas")} // Agrega tu lógica para mostrar deudas
-            />
+                {loading && <p className="text-center">Loading...</p>}
+                {!loading && error && <p className="text-center text-red-500">{error}</p>}
+                {!loading && !error && expenses.length === 0 && (
+                    <p className="text-center text-gray-500">De momento no hay contenido para este grupo.</p>
+                )}
+                {!loading && !error && expenses.length > 0 && (
+                    <ExpenseList expenses={expenses}/>
+                )}
 
-            {/* Lista de gastos */}
-            <ExpenseList expenses={expenses}/>
+                {/* Botón siempre en la parte inferior de la pantalla */}
+                <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2">
+                    <button
+                        onClick={() => setExpenseModalOpen(true)}
+                        className="p-2 flex justify-center items-center rounded-full bg-sky-500 text-white px-6 py-3 mx-5 -mb-4 hover:bg-cyan-700 focus:outline-none focus:bg-blue-500"
+                    >
+                        Crear Nuevo Gasto
+                    </button>
+                </div>
+            </div>
 
-            {/* Modal para añadir miembros */}
             {isModalOpen && (
                 <AddMemberModal
                     idGroup={idGroup}
@@ -82,19 +102,12 @@ export function Expense() {
                 />
             )}
 
-            <button
-                onClick={() => setExpenseModalOpen(true)}
-                className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700"
-            >
-                Crear Nuevo Gasto
-            </button>
-
             <AddExpenseModal
                 isOpen={isExpenseModalOpen}
                 onClose={() => setExpenseModalOpen(false)}
                 groupId={idGroup}
                 onSubmit={handleCreateExpense}
             />
-        </div>
+        </>
     );
 }

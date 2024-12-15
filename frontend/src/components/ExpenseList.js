@@ -5,7 +5,7 @@ import ExpenseDate from './ExpenseDate';
 function ExpenseList({ expenses }) {
     return (
         <div className="max-w-6xl mx-auto">
-            <div className="container mx-auto px-6 pb-24">
+            <div className="container mx-auto px-6 pb-32">
                 {expenses.map((expense, index) => (
                     <div key={expense.id}>
                         {/* Mostrar la fecha solo si es el primer gasto de un grupo por fecha */}
