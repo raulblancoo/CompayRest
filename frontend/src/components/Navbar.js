@@ -61,6 +61,16 @@ const Navbar = () => {
                             </Link>
                         </div>
                     </div>
+
+                    <div>
+                        <div>
+                            <span>Internacionalización</span>
+                        </div>
+                        <div>
+                            <span>Logout</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </nav>
