@@ -67,6 +67,8 @@ public class ExpenseController {
 
             ExpenseDto savedExpense = expenseService.saveExpense(expenseDto);
 
+            groupService.updateGroupAmount(groupId, savedExpense.getAmount());
+
             for (Map.Entry<String, Double> entry : expense.getShares().entrySet()) {
                 String userEmail = entry.getKey();
                 Double assignedAmount = entry.getValue();
