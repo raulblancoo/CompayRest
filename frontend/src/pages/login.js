@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../components/axiosInstance";
 
 export function Login() {
     // Estados
@@ -26,10 +26,14 @@ export function Login() {
         };
 
         try {
-            const response = await axios.post("http://localhost:8080/login", loginData);
+            const response = await axiosInstance.post("/login", loginData);
             if (response.status === 200 ||response.status === 201) {
-                // Navega a la ruta '/groups' si el login es exitoso
-                navigate("/groups");
+                const { token } = response.data;
+
+                if (token) {
+                    localStorage.setItem('token', token);
+                    navigate("/groups");
+                }
             } else {
                 // Manejo de error
                 setError("Login failed for user. Please retry!");
@@ -54,7 +58,7 @@ export function Login() {
 
         try {
             // Ajusta la URL según tu backend (ej: /register)
-            const response = await axios.post("http://localhost:8080/register", registerData);
+            const response = await axiosInstance.post("/register", registerData);
             if (response.status === 200 || response.status === 201) {
                 navigate("/login");
             } else {
