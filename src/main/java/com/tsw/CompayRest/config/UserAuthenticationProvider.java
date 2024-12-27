@@ -44,6 +44,7 @@ public class UserAuthenticationProvider {
                 .withExpiresAt(validity)
                 .withClaim("name", user.getName())
                 .withClaim("surname", user.getSurname())
+                .withClaim("id", user.getId())
                 .sign(algorithm);
     }
 
