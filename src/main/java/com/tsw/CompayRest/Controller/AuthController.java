@@ -4,16 +4,17 @@ package com.tsw.CompayRest.Controller;
 import com.tsw.CompayRest.Dto.CredentialsDto;
 import com.tsw.CompayRest.Dto.SignUpDto;
 import com.tsw.CompayRest.Dto.UserDto;
+import com.tsw.CompayRest.Model.UserModel;
 import com.tsw.CompayRest.Service.UserService;
 import com.tsw.CompayRest.config.UserAuthenticationProvider;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -35,5 +36,6 @@ public class AuthController {
         createdUser.setToken(userAuthenticationProvider.createToken(createdUser));
         return ResponseEntity.created(URI.create("/users/" + createdUser.getId())).body(createdUser);
     }
+
 
 }
