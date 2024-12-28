@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import GroupList from "../components/GroupList";
 import axiosInstance from "../components/axiosInstance";
-import {useNavigate} from "react-router-dom";
 import GroupModal from "../components/GroupModal";
 import { getUserIdFromToken } from "../components/AuthUtils";
 

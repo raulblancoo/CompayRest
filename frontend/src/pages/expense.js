@@ -4,15 +4,11 @@ import ExpenseHeader from "../components/ExpenseHeader"; // Importamos el compon
 import ExpenseUnderHeader from "../components/ExpenseUnderHeader";
 import ExpenseList from "../components/ExpenseList";
 import AddMemberModal from "../components/AddMemberModal";
-import React, { useState, useEffect } from 'react';
-import ExpenseUnderHeader from '../components/ExpenseUnderHeader';
-import ExpenseList from "../components/ExpenseList";
-import AddMemberModal from "../components/AddMemberModal";
-import { useParams } from "react-router-dom";
 import BizumsModal from "../components/BizumsModal"; // Importa el componente modal de bizums
 import { useParams } from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
 import { getUserIdFromToken } from "../components/AuthUtils";
+import AddExpenseModal from "../components/AddExpenseModal";
 
 
 
@@ -96,6 +92,7 @@ export function Expense() {
             console.error("Error al obtener los bizums:", error);
             alert("Error al cargar los bizums");
         }
+    };
 
     const handleDeleteExpense = (expenseId) => {
         setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense.id !== expenseId));
