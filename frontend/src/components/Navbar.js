@@ -83,6 +83,7 @@ const Navbar = () => {
 
     const currentLanguage = languages.find((lang) => lang.code === selectedLanguage);
 
+
     return (
         <nav className="bg-white shadow">
             <div className="shadow px-5">
