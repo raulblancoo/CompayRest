@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "./axiosInstance";
 import { getUserIdFromToken } from "./AuthUtils";
@@ -6,7 +6,11 @@ import { getUserIdFromToken } from "./AuthUtils";
 const Navbar = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState({});
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Estado para controlar el menú desplegable
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Menú del usuario
+    const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false); // Menú de idiomas
+    const [selectedLanguage, setSelectedLanguage] = useState("es"); // Idioma seleccionado
+    const userDropdownRef = useRef(null); // Referencia al dropdown del usuario
+    const languageDropdownRef = useRef(null); // Referencia al dropdown de idiomas
 
     const handleLogout = () => {
         // Eliminar el token y redirigir al login
@@ -33,9 +37,51 @@ const Navbar = () => {
         getUser();
     }, []);
 
-    const toggleDropdown = () => {
+    // Cierra los dropdowns si se hace clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (
+                userDropdownRef.current &&
+                !userDropdownRef.current.contains(event.target)
+            ) {
+                setIsDropdownOpen(false);
+            }
+            if (
+                languageDropdownRef.current &&
+                !languageDropdownRef.current.contains(event.target)
+            ) {
+                setIsLanguageDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    const toggleUserDropdown = () => {
         setIsDropdownOpen((prevState) => !prevState);
+        setIsLanguageDropdownOpen(false); // Cierra el menú de idiomas
     };
+
+    const toggleLanguageDropdown = () => {
+        setIsLanguageDropdownOpen((prevState) => !prevState);
+        setIsDropdownOpen(false); // Cierra el menú del usuario
+    };
+
+    const handleLanguageChange = (language) => {
+        setSelectedLanguage(language);
+        setIsLanguageDropdownOpen(false); // Cierra el menú de idiomas
+    };
+
+    const languages = [
+        { code: "es", label: "Español", flag: "https://cdn.icon-icons.com/icons2/1531/PNG/512/3253482-flag-spain-icon_106784.png" },
+        { code: "en", label: "English (UK)", flag: "https://cdn.icon-icons.com/icons2/107/PNG/512/united_kingdom_flag_flags_18060.png" },
+        { code: "it", label: "Italiano", flag: "https://cdn.icon-icons.com/icons2/107/PNG/512/italy_18275.png" },
+    ];
+
+    const currentLanguage = languages.find((lang) => lang.code === selectedLanguage);
 
     return (
         <nav className="bg-white shadow">
@@ -98,40 +144,65 @@ const Navbar = () => {
                     </div>
 
                     <div className="relative flex items-center space-x-4">
-                        <div className="flex items-center">
-                            {/* Bandera de España */}
-                            <img
-                                className="w-6 h-6 cursor-pointer"
-                                src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" // URL de la bandera de España
-                                alt="Bandera de España"
-                            />
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <img
-                                className="w-9 h-9 rounded-full cursor-pointer"
-                                src={user.avatarURL || "https://via.placeholder.com/36"} // Usa un avatar por defecto si no hay avatarURL
-                                alt={user.username || "Usuario"}
-                                onClick={toggleDropdown} // Al hacer clic, alterna el estado del menú desplegable
-                            />
+                        {/* Dropdown de Idiomas */}
+                        <div className="relative" ref={languageDropdownRef}>
+                            <div
+                                className="flex items-center cursor-pointer"
+                                onClick={toggleLanguageDropdown}
+                            >
+                                <img
+                                    className="w-8 h-8 rounded"
+                                    src={currentLanguage.flag}
+                                    alt={currentLanguage.label}
+                                />
+                            </div>
+                            {isLanguageDropdownOpen && (
+                                <div className="absolute right-0 top-full mt-2 w-40 bg-white border rounded shadow-lg z-50 left-1/2 transform -translate-x-1/2">
+                                    <ul>
+                                        {languages.map((language) => (
+                                            <li
+                                                key={language.code}
+                                                className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                                onClick={() => handleLanguageChange(language.code)}
+                                            >
+                                                <img
+                                                    src={language.flag}
+                                                    alt={language.label}
+                                                    className="w-5 h-5 rounded mr-2"
+                                                />
+                                                <span>{language.label}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
 
-                        {/* Menú Desplegable */}
-                        {isDropdownOpen && (
-                            <div className="absolute left-1/2 transform -translate-x-1/2 top-full right-0 mt-2 w-48 bg-white border rounded shadow-md">
-                                <div className="p-4">
-                                    <p className="font-bold">{user.name || "Nombre Desconocido"}</p>
-                                    <p className="text-sm text-gray-600">{user.email || "Email Desconocido"}</p>
+                        {/* Avatar y Menú del Usuario */}
+                        <div className="relative" ref={userDropdownRef}>
+                            <img
+                                className="w-9 h-9 rounded-full cursor-pointer"
+                                src={user.avatarURL || "https://via.placeholder.com/36"}
+                                alt={user.username || "Usuario"}
+                                onClick={toggleUserDropdown}
+                            />
+                            {isDropdownOpen && (
+                                <div className="absolute right-0 top-full mt-2 left-1/2 transform -translate-x-1/2 w-48 bg-white border rounded shadow-md z-50">
+                                    <div className="p-4">
+                                        <p className="font-bold">{user.name || "Nombre Desconocido"}</p>
+                                        <p className="text-sm text-gray-600">{user.email || "Email Desconocido"}</p>
+                                    </div>
+                                    <div className="border-t">
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full text-left px-4 py-2 text-red-500 hover:bg-red-100"
+                                        >
+                                            Cerrar sesión
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="border-t">
-                                    <button
-                                        onClick={handleLogout}
-                                        className="w-full text-left px-4 py-2 text-red-500 hover:bg-red-100"
-                                    >
-                                        Cerrar sesión
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
