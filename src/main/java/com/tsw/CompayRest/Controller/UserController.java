@@ -2,6 +2,8 @@ package com.tsw.CompayRest.Controller;
 
 import com.tsw.CompayRest.Dto.UserDto;
 import com.tsw.CompayRest.Service.UserService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -57,6 +59,22 @@ public class UserController {
             return ResponseEntity.noContent().build(); // HTTP 204
         } else {
             return ResponseEntity.notFound().build();  // HTTP 404
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody UserDto loginRequest, HttpSession session) {
+        try{
+            boolean isAuthenticated = userService.getUserByEmail(loginRequest.getEmail()).isPresent();
+
+            if (isAuthenticated){
+                session.setAttribute("user", loginRequest.getUsername());
+                return ResponseEntity.ok("Login was successful!");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unknown error occurred");
         }
     }
 }

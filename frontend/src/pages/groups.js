@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import GroupList from "../components/GroupList";
+import axiosInstance from "../components/axiosInstance";
+import Modal from "../components/Modal";
+import { jwtDecode } from 'jwt-decode';
+import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import GroupModal from "../components/GroupModal";
 
@@ -9,11 +13,34 @@ export function Groups() {
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const getUserIdFromToken = () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                return decoded.userId || decoded.id; // AJUSTA SEGÚN LA ESTRUCTURA DE TU TOKEN
+            } catch (err) {
+                console.error("Error decoding token:", err);
+                return null;
+            }
+        }
+        return null;
+    };
+
+    const userId = getUserIdFromToken();
+    const navigate = useNavigate();
+
     useEffect(() => {
         const fetchGroups = async () => {
+
+            if (!userId) {
+                setError("¡No hay usuario logueado, chinga tu madre!");
+                setLoading(false);
+                return;
+            }
+
             try {
-                // TODO: Cambiar "1" por el ID del usuario actual
-                const response = await axios.get("http://localhost:8080/users/1/groups");
+                const response = await axiosInstance.get(`/users/${userId}/groups`);
                 setGroups(response.data);
                 setLoading(false);
             } catch (err) {
@@ -24,14 +51,14 @@ export function Groups() {
         };
 
         fetchGroups();
-    }, []);
+    }, [userId]);
 
     const handleOpenModal = () => setIsModalOpen(true);
     const handleCloseModal = () => setIsModalOpen(false);
 
     const handleCreateGroup = async (newGroup) => {
         try {
-            const response = await axios.post("http://localhost:8080/users/1/groups", newGroup);
+            const response = await axiosInstance.post(`/users/${userId}/groups`, newGroup);
             setGroups((prevGroups) => [...prevGroups, response.data]);
             setIsModalOpen(false); // Cierra la modal después de crear el grupo
         } catch (err) {
