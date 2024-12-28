@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import ExpenseHeader from '../components/ExpenseHeader';
 import ExpenseUnderHeader from '../components/ExpenseUnderHeader';
 import ExpenseList from "../components/ExpenseList";
 import AddMemberModal from "../components/AddMemberModal"; // Importamos el modal
 import {useNavigate, useParams} from "react-router-dom";
 import AddExpenseModal from "../components/AddExpenseModal";
 import axiosInstance from "../components/axiosInstance";
-import { jwtDecode } from 'jwt-decode';
+import { getUserIdFromToken } from "../components/AuthUtils";
 
 export function Expense() {
     const { idGroup } = useParams(); // Obtenemos el id del grupo desde la URL
@@ -16,22 +15,8 @@ export function Expense() {
     const [isModalOpen, setModalOpen] = useState(false); // Estado para controlar la visibilidad del modal
     const [isExpenseModalOpen, setExpenseModalOpen] = useState(false);
 
-    const getUserIdFromToken = () => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            try {
-                const decoded = jwtDecode(token);
-                return decoded.userId || decoded.id; // AJUSTA SEGÚN LA ESTRUCTURA DE TU TOKEN
-            } catch (err) {
-                console.error("Error decoding token:", err);
-                return null;
-            }
-        }
-        return null;
-    };
-
     const userId = getUserIdFromToken();
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
     useEffect(() => {
         const fetchExpenses = async () => {

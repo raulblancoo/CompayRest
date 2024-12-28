@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../components/axiosInstance";
-import { jwtDecode } from 'jwt-decode';
+import { getUserIdFromToken } from "./AuthUtils";
 
 const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const [members, setMembers] = useState([]); // Lista de miembros del grupo
@@ -10,21 +10,6 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const [amount, setAmount] = useState("");
     const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
     const [shares, setShares] = useState({}); // Almacena la distribución del mapa
-
-
-    const getUserIdFromToken = () => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            try {
-                const decoded = jwtDecode(token);
-                return decoded.userId || decoded.id; // AJUSTA SEGÚN LA ESTRUCTURA DE TU TOKEN
-            } catch (err) {
-                console.error("Error decoding token:", err);
-                return null;
-            }
-        }
-        return null;
-    };
 
     const userId = getUserIdFromToken();
 
