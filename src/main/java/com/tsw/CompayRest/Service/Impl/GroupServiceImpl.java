@@ -68,6 +68,14 @@ public class GroupServiceImpl implements GroupService {
         return groupRepository.findById(groupId).map(groupMapper::toDto);
     }
 
+    @Override
+    public void updateGroupAmount(Long groupId, double amount) {
+        groupRepository.findById(groupId).ifPresent(existingGroup -> {
+            existingGroup.setAmount(existingGroup.getAmount() + amount);
+            groupRepository.save(existingGroup);
+        });
+    }
+
 
     private String getImageUrl() {
         return IMG_URLS.get(getRandomNumber(IMG_URLS.size()));
