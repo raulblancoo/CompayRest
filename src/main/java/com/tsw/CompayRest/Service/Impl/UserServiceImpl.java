@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
         UserModel user = userMapper.signUpToUser(userDto);
         user.setPassword(passwordEncoder.encode(CharBuffer.wrap(userDto.password())));
 
-        user.setAvatarURL("https://ui-avatars.com/api?name=" + user.getName() + "+" + user.getSurname());
+        user.setAvatarURL("https://api.dicebear.com/9.x/lorelei/svg?seed=" + user.getName() + user.getSurname());
         UserModel savedUser = userRepository.save(user);
 
         return userMapper.toDto(savedUser);

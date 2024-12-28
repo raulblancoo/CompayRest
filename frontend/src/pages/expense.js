@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ExpenseHeader from "../components/ExpenseHeader"; // Importamos el componente ExpenseHeader
 import ExpenseUnderHeader from "../components/ExpenseUnderHeader";
 import ExpenseList from "../components/ExpenseList";
 import AddMemberModal from "../components/AddMemberModal";
@@ -10,6 +11,7 @@ import { jwtDecode } from "jwt-decode";
 
 export function Expense() {
     const { idGroup } = useParams();
+    const [group, setGroup] = useState(null); // Estado para guardar los datos del grupo
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -34,6 +36,28 @@ export function Expense() {
 
     const userId = getUserIdFromToken();
 
+    // Fetch para obtener los datos del grupo
+    useEffect(() => {
+        const fetchGroupData = async () => {
+            if (!userId) {
+                setError("¡No hay usuario logueado!");
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}`);
+                setGroup(response.data);
+            } catch (error) {
+                console.error("Error al obtener los datos del grupo:", error);
+                setError("Error al obtener los datos del grupo");
+            }
+        };
+
+        fetchGroupData();
+    }, [idGroup, userId]);
+
+    // Fetch para obtener los gastos
     useEffect(() => {
         const fetchExpenses = async () => {
             if (!userId) {
@@ -100,9 +124,11 @@ export function Expense() {
 
     return (
         <>
-            <div className="p-4">
-                <h1 className="text-2xl font-bold mb-4">Gastos del Grupo {idGroup}</h1>
+            <div >
+                {/* Cabecera del grupo */}
+                {group && <ExpenseHeader group={group} />}
 
+                {/* Botones debajo de la cabecera */}
                 <ExpenseUnderHeader
                     onAddMember={() => setModalOpen(true)}
                     onShowDebts={fetchBizums}
