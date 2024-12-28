@@ -1,26 +1,42 @@
-import React from "react";
-import {Link, useNavigate} from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "./axiosInstance";
+import { getUserIdFromToken } from "./AuthUtils";
 
 const Navbar = () => {
-
     const navigate = useNavigate();
+    const [user, setUser] = useState({});
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Estado para controlar el menú desplegable
 
-    const handleLogout = async () => {
+    const handleLogout = () => {
+        // Eliminar el token y redirigir al login
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        navigate("/login");
+    };
+
+    const getUser = async () => {
         try {
-            const token = localStorage.getItem("token");
-
-            // Limpiar el almacenamiento local
-            localStorage.removeItem("token");
-            localStorage.removeItem("refreshToken");
-
-            // Redirigir al usuario al login
-            navigate("/login");
+            const userId = getUserIdFromToken();
+            const response = await axiosInstance.get(`/users/${userId}`);
+            if (response.status === 204) {
+                setUser({});
+            } else {
+                setUser(response.data);
+            }
         } catch (error) {
-            console.error("Error during logout:", error);
-            alert("Error durante el logout");
+            console.error("Error al obtener el usuario loggeado:", error);
         }
     };
+
+    useEffect(() => {
+        getUser();
+    }, []);
+
+    const toggleDropdown = () => {
+        setIsDropdownOpen((prevState) => !prevState);
+    };
+
     return (
         <nav className="bg-white shadow">
             <div className="shadow px-5">
@@ -81,18 +97,42 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    <div>
-                        <div>
-                            <span>Internacionalización</span>
+                    <div className="relative flex items-center space-x-4">
+                        <div className="flex items-center">
+                            {/* Bandera de España */}
+                            <img
+                                className="w-6 h-6 cursor-pointer"
+                                src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" // URL de la bandera de España
+                                alt="Bandera de España"
+                            />
                         </div>
-                        <button
-                            onClick={handleLogout}
-                            className="text-red-500 hover:text-red-700 transition-colors"
-                        >
-                            Logout
-                        </button>
-                    </div>
+                        <div className="flex items-center space-x-4">
+                            <img
+                                className="w-9 h-9 rounded-full cursor-pointer"
+                                src={user.avatarURL || "https://via.placeholder.com/36"} // Usa un avatar por defecto si no hay avatarURL
+                                alt={user.username || "Usuario"}
+                                onClick={toggleDropdown} // Al hacer clic, alterna el estado del menú desplegable
+                            />
+                        </div>
 
+                        {/* Menú Desplegable */}
+                        {isDropdownOpen && (
+                            <div className="absolute left-1/2 transform -translate-x-1/2 top-full right-0 mt-2 w-48 bg-white border rounded shadow-md">
+                                <div className="p-4">
+                                    <p className="font-bold">{user.name || "Nombre Desconocido"}</p>
+                                    <p className="text-sm text-gray-600">{user.email || "Email Desconocido"}</p>
+                                </div>
+                                <div className="border-t">
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full text-left px-4 py-2 text-red-500 hover:bg-red-100"
+                                    >
+                                        Cerrar sesión
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </nav>
