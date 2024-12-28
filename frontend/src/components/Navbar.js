@@ -21,6 +21,7 @@ const Navbar = () => {
             alert("Error durante el logout");
         }
     };
+
     return (
         <nav className="bg-white shadow">
             <div className="shadow px-5">
