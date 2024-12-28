@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axiosInstance from "../components/axiosInstance";
 import { jwtDecode } from 'jwt-decode';
+import {getUserIdFromToken} from "./AuthUtils";
 
 const AddMemberModal = ({ onClose, idGroup }) => {
     const [emails, setEmails] = useState([]);
@@ -17,19 +18,6 @@ const AddMemberModal = ({ onClose, idGroup }) => {
         setEmails(emails.filter((e) => e !== email));
     };
 
-    const getUserIdFromToken = () => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            try {
-                const decoded = jwtDecode(token);
-                return decoded.userId || decoded.id; // AJUSTA SEGÚN LA ESTRUCTURA DE TU TOKEN
-            } catch (err) {
-                console.error("Error decoding token:", err);
-                return null;
-            }
-        }
-        return null;
-    };
 
     const userId = getUserIdFromToken();
 

@@ -9,6 +9,7 @@ import com.tsw.CompayRest.Service.ExpenseShareService;
 import com.tsw.CompayRest.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +46,9 @@ public class ExpenseShareServiceImpl implements ExpenseShareService {
     }
 
     @Override
+    @Transactional
     public boolean deleteAll(Long expenseId) {
-        return expenseShareRepository.deleteAllByExpenseId(expenseId);
+        int deletedRows = expenseShareRepository.deleteAllByExpenseId(expenseId);
+        return deletedRows > 0;
     }
 }

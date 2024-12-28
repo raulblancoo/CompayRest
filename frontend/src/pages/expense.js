@@ -1,17 +1,26 @@
+
 import React, { useState, useEffect } from "react";
 import ExpenseHeader from "../components/ExpenseHeader"; // Importamos el componente ExpenseHeader
 import ExpenseUnderHeader from "../components/ExpenseUnderHeader";
 import ExpenseList from "../components/ExpenseList";
 import AddMemberModal from "../components/AddMemberModal";
-import AddExpenseModal from "../components/AddExpenseModal";
+import React, { useState, useEffect } from 'react';
+import ExpenseUnderHeader from '../components/ExpenseUnderHeader';
+import ExpenseList from "../components/ExpenseList";
+import AddMemberModal from "../components/AddMemberModal";
+import { useParams } from "react-router-dom";
 import BizumsModal from "../components/BizumsModal"; // Importa el componente modal de bizums
 import { useParams } from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
-import { jwtDecode } from "jwt-decode";
+import { getUserIdFromToken } from "../components/AuthUtils";
+
+
 
 export function Expense() {
     const { idGroup } = useParams();
     const [group, setGroup] = useState(null); // Estado para guardar los datos del grupo
+
+
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -19,20 +28,6 @@ export function Expense() {
     const [isExpenseModalOpen, setExpenseModalOpen] = useState(false);
     const [isBizumsModalOpen, setBizumsModalOpen] = useState(false);
     const [bizums, setBizums] = useState([]);
-
-    const getUserIdFromToken = () => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            try {
-                const decoded = jwtDecode(token);
-                return decoded.userId || decoded.id;
-            } catch (err) {
-                console.error("Error decoding token:", err);
-                return null;
-            }
-        }
-        return null;
-    };
 
     const userId = getUserIdFromToken();
 
@@ -101,6 +96,10 @@ export function Expense() {
             console.error("Error al obtener los bizums:", error);
             alert("Error al cargar los bizums");
         }
+
+    const handleDeleteExpense = (expenseId) => {
+        setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense.id !== expenseId));
+
     };
 
     const handleCreateExpense = async (newExpense) => {
@@ -128,10 +127,12 @@ export function Expense() {
                 {/* Cabecera del grupo */}
                 {group && <ExpenseHeader group={group} />}
 
+
                 {/* Botones debajo de la cabecera */}
                 <ExpenseUnderHeader
                     onAddMember={() => setModalOpen(true)}
                     onShowDebts={fetchBizums}
+
                 />
 
                 {loading && <p className="text-center">Loading...</p>}
@@ -142,7 +143,14 @@ export function Expense() {
                     </p>
                 )}
                 {!loading && !error && expenses.length > 0 && (
-                    <ExpenseList expenses={expenses} />
+
+                    <ExpenseList
+                        expenses={expenses}
+                        userId={userId}
+                        groupId={idGroup}
+                        onDeleteExpense={handleDeleteExpense}
+                    />
+
                 )}
 
                 <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2">
