@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from "axios";
 import axiosInstance from "../components/axiosInstance";
 import { jwtDecode } from 'jwt-decode';
 
