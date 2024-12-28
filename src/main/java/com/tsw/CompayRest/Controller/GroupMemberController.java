@@ -67,9 +67,26 @@ public class GroupMemberController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
+    // TODO: para el create realmente no hace falta introducir más que la lista de emails (mirar chatgpt raúl para cambiarlo)
+    @PostMapping("/email")
+    public ResponseEntity<Void> addGroupMemberByEmail(@PathVariable("groupId") Long groupId, @RequestBody List<String> emails ) {
+        Optional<GroupDto> group = groupService.getGroupById(groupId);
+
+
+        for(String email: emails) {
+            Optional<UserDto> user = userService.getUserByEmail(email);
+
+            if (group.isPresent() && user.isPresent() ) {
+                groupMemberService.saveGroupMember(group.get(), user.get());
+            }
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
     // TODO: no funciona correctamente el borrar miembro (NO LO BORRA, service o repository)
     @DeleteMapping("/{memberId}")
-    public ResponseEntity<Void> deleteGroupMember(@PathVariable Long groupId, @PathVariable Long memberId, @PathVariable Long userId) {
+    public ResponseEntity<HttpStatus> deleteGroupMember(@PathVariable Long groupId, @PathVariable Long memberId, @PathVariable Long userId) {
         GroupMemberDto membership = groupMemberService.getGroupMember(groupId, memberId);
 
         if (membership == null) {

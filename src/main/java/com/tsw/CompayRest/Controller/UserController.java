@@ -38,6 +38,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserDto> createUser(@RequestBody UserDto user) {
         // TODO: validar si se permiten duplicados por email
+        // TODO: setear correctamente la imagen de perfil
         UserDto createdUser = userService.saveUser(user);
         return ResponseEntity.status(201).body(createdUser); // HTTP 201
     }

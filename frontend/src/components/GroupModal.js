@@ -1,122 +1,136 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-const GroupModal = ({
-                        isOpen,
-                        onClose,
-                        onSubmit,
-                        initialValues = { groupName: "", currency: "EURO" },
-                        showEmails = true
-                    }) => {
-    const [groupName, setGroupName] = useState(initialValues.groupName);
-    const [currency, setCurrency] = useState(initialValues.currency);
+const GroupModal = ({ isOpen, onClose, onSubmit }) => {
+    const [groupName, setGroupName] = useState("");
+    const [currency, setCurrency] = useState("EUR");
     const [emails, setEmails] = useState([]);
 
-    // Resetea los campos cuando la modal se abre o se cierra
-    useEffect(() => {
-        setGroupName(initialValues.groupName || "");
-        setCurrency(initialValues.currency || "EURO");
-        setEmails([]);
-    }, [isOpen, initialValues]);
+    const [emailInput, setEmailInput] = useState("");
 
-    const handleAddEmail = (email) => {
-        if (email && !emails.includes(email)) {
-            setEmails([...emails, email]);
+    const handleAddEmail = () => {
+        if (emailInput && !emails.includes(emailInput)) {
+            setEmails([...emails, emailInput]);
+            setEmailInput("");
         }
     };
 
-    const handleRemoveEmail = (email) => {
-        setEmails(emails.filter((e) => e !== email));
+    const handleRemoveEmail = (emailToRemove) => {
+        setEmails(emails.filter((email) => email !== emailToRemove));
     };
 
     const handleSubmit = () => {
-        const groupData = { groupName, currency };
-        if (showEmails) groupData.emails = emails;
-        onSubmit(groupData);
+        const data = {
+            group_name: groupName,
+            currency,
+            userEmails: emails,
+        };
+
+        console.log("Data enviada:", data);
+        onSubmit(data);
+        handleClose();
+    };
+
+    const handleClose = () => {
+        setGroupName("");
+        setCurrency("EUR");
+        setEmails([]);
+        setEmailInput("");
+        onClose(); // Cierra la modal
     };
 
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                <h2 className="text-lg font-bold mb-4">
-                    {initialValues.groupName ? "Editar Grupo" : "Crear Grupo"}
-                </h2>
-
-                {/* Campo Nombre del Grupo */}
-                <div className="mb-4">
-                    <label className="block text-gray-700">Nombre del Grupo</label>
-                    <input
-                        type="text"
-                        value={groupName}
-                        onChange={(e) => setGroupName(e.target.value)}
-                        className="w-full p-2 border rounded-md"
-                    />
-                </div>
-
-                {/* Selector de Moneda */}
-                <div className="mb-4">
-                    <label className="block text-gray-700">Moneda</label>
-                    <select
-                        value={currency}
-                        onChange={(e) => setCurrency(e.target.value)}
-                        className="w-full p-2 border rounded-md"
-                    >
-                        <option value="EUR">Euro (€)</option>
-                        <option value="USD">Dólar ($)</option>
-                        <option value="GBP">Libra (£)</option>
-                    </select>
-                </div>
-
-                {/* Campo de Emails (opcional) */}
-                {showEmails && (
+            <div className="bg-white rounded-lg shadow-lg w-96 p-6">
+                <h2 className="text-xl font-semibold mb-4">Crear Nuevo Grupo</h2>
+                <form>
+                    {/* Input: Nombre del grupo */}
                     <div className="mb-4">
-                        <label className="block text-gray-700">Emails</label>
-                        <div className="flex gap-2 mb-2">
+                        <label htmlFor="groupName" className="block text-sm font-medium text-gray-700">
+                            Nombre del Grupo
+                        </label>
+                        <input
+                            type="text"
+                            id="groupName"
+                            value={groupName}
+                            onChange={(e) => setGroupName(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                        />
+                    </div>
+
+                    {/* Select: Moneda */}
+                    <div className="mb-4">
+                        <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
+                            Moneda
+                        </label>
+                        <select
+                            id="currency"
+                            value={currency}
+                            onChange={(e) => setCurrency(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                        >
+                            <option value="EUR">Euro (€)</option>
+                            <option value="USD">Dólar ($)</option>
+                            <option value="GBP">Libra (£)</option>
+                        </select>
+                    </div>
+
+                    {/* Input: Emails */}
+                    <div className="mb-4">
+                        <label htmlFor="emails" className="block text-sm font-medium text-gray-700">
+                            Correos Electrónicos
+                        </label>
+                        <div className="flex">
                             <input
                                 type="email"
-                                placeholder="Agregar email"
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        handleAddEmail(e.target.value);
-                                        e.target.value = "";
-                                    }
-                                }}
-                                className="flex-grow p-2 border rounded-md"
+                                id="emails"
+                                value={emailInput}
+                                onChange={(e) => setEmailInput(e.target.value)}
+                                placeholder="Añadir email"
+                                className="w-full border border-gray-300 rounded-md p-2 mt-1 mr-2"
                             />
+                            <button
+                                type="button"
+                                onClick={handleAddEmail}
+                                className="bg-blue-600 text-white px-3 py-2 rounded-md"
+                            >
+                                Añadir
+                            </button>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                            {emails.map((email) => (
-                                <span
-                                    key={email}
-                                    className="bg-gray-200 px-3 py-1 rounded-full flex items-center gap-2"
+                        <div className="mt-2">
+                            {emails.map((email, index) => (
+                                <div
+                                    key={index}
+                                    className="flex justify-between items-center bg-gray-100 rounded-md p-2 mt-1"
                                 >
-                                    {email}
+                                    <span>{email}</span>
                                     <button
+                                        type="button"
                                         onClick={() => handleRemoveEmail(email)}
                                         className="text-red-500"
                                     >
-                                        ×
+                                        X
                                     </button>
-                                </span>
+                                </div>
                             ))}
                         </div>
                     </div>
-                )}
+                </form>
 
                 {/* Botones */}
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-2 mt-4">
                     <button
-                        onClick={onClose}
-                        className="px-4 py-2 bg-gray-300 rounded-md"
+                        onClick={handleClose}
+                        className="bg-gray-300 px-4 py-2 rounded-md"
                     >
-                        Cancelar
+                        Cerrar
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-md"
                     >
-                        {initialValues.groupName ? "Actualizar" : "Crear"}
+                        Enviar
                     </button>
                 </div>
             </div>
