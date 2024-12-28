@@ -1,7 +1,26 @@
 import React from "react";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
+import axiosInstance from "./axiosInstance";
 
 const Navbar = () => {
+
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        try {
+            const token = localStorage.getItem("token");
+
+            // Limpiar el almacenamiento local
+            localStorage.removeItem("token");
+            localStorage.removeItem("refreshToken");
+
+            // Redirigir al usuario al login
+            navigate("/login");
+        } catch (error) {
+            console.error("Error during logout:", error);
+            alert("Error durante el logout");
+        }
+    };
     return (
         <nav className="bg-white shadow">
             <div className="shadow px-5">
@@ -66,9 +85,12 @@ const Navbar = () => {
                         <div>
                             <span>Internacionalización</span>
                         </div>
-                        <div>
-                            <span>Logout</span>
-                        </div>
+                        <button
+                            onClick={handleLogout}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                            Logout
+                        </button>
                     </div>
 
                 </div>
