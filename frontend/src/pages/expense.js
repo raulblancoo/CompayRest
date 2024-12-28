@@ -1,27 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import ExpenseHeader from '../components/ExpenseHeader';
-import ExpenseUnderHeader from '../components/ExpenseUnderHeader';
+import React, { useState, useEffect } from "react";
+import ExpenseUnderHeader from "../components/ExpenseUnderHeader";
 import ExpenseList from "../components/ExpenseList";
-import AddMemberModal from "../components/AddMemberModal"; // Importamos el modal
-import {useNavigate, useParams} from "react-router-dom";
+import AddMemberModal from "../components/AddMemberModal";
 import AddExpenseModal from "../components/AddExpenseModal";
+import BizumsModal from "../components/BizumsModal"; // Importa el componente modal de bizums
+import { useParams } from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from "jwt-decode";
 
 export function Expense() {
-    const { idGroup } = useParams(); // Obtenemos el id del grupo desde la URL
-    const [expenses, setExpenses] = useState([]); // Estado para los gastos
-    const [loading, setLoading] = useState(true); // Estado para indicar si los datos están cargando
+    const { idGroup } = useParams();
+    const [expenses, setExpenses] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [isModalOpen, setModalOpen] = useState(false); // Estado para controlar la visibilidad del modal
+    const [isModalOpen, setModalOpen] = useState(false);
     const [isExpenseModalOpen, setExpenseModalOpen] = useState(false);
+    const [isBizumsModalOpen, setBizumsModalOpen] = useState(false);
+    const [bizums, setBizums] = useState([]);
 
     const getUserIdFromToken = () => {
         const token = localStorage.getItem("token");
         if (token) {
             try {
                 const decoded = jwtDecode(token);
-                return decoded.userId || decoded.id; // AJUSTA SEGÚN LA ESTRUCTURA DE TU TOKEN
+                return decoded.userId || decoded.id;
             } catch (err) {
                 console.error("Error decoding token:", err);
                 return null;
@@ -31,7 +33,6 @@ export function Expense() {
     };
 
     const userId = getUserIdFromToken();
-    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchExpenses = async () => {
@@ -42,9 +43,11 @@ export function Expense() {
             }
 
             try {
-                const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/expenses`);
+                const response = await axiosInstance.get(
+                    `/users/${userId}/groups/${idGroup}/expenses`
+                );
                 if (response.status === 204) {
-                    setExpenses([]); // No hay contenido
+                    setExpenses([]);
                 } else {
                     setExpenses(response.data);
                 }
@@ -58,6 +61,23 @@ export function Expense() {
 
         fetchExpenses();
     }, [idGroup, userId]);
+
+    const fetchBizums = async () => {
+        try {
+            const response = await axiosInstance.get(
+                `/users/${userId}/groups/${idGroup}/bizums`
+            );
+            if (response.status === 204) {
+                setBizums([]);
+            } else {
+                setBizums(response.data);
+            }
+            setBizumsModalOpen(true);
+        } catch (error) {
+            console.error("Error al obtener los bizums:", error);
+            alert("Error al cargar los bizums");
+        }
+    };
 
     const handleCreateExpense = async (newExpense) => {
         if (!userId) {
@@ -83,22 +103,22 @@ export function Expense() {
             <div className="p-4">
                 <h1 className="text-2xl font-bold mb-4">Gastos del Grupo {idGroup}</h1>
 
-                {/* Botones bajo el encabezado */}
                 <ExpenseUnderHeader
-                    onAddMember={() => setModalOpen(true)} // Abre el modal
-                    onShowDebts={() => console.log("Mostrar deudas")} // Agrega tu lógica para mostrar deudas
+                    onAddMember={() => setModalOpen(true)}
+                    onShowDebts={fetchBizums}
                 />
 
                 {loading && <p className="text-center">Loading...</p>}
                 {!loading && error && <p className="text-center text-red-500">{error}</p>}
                 {!loading && !error && expenses.length === 0 && (
-                    <p className="text-center text-gray-500">De momento no hay contenido para este grupo.</p>
+                    <p className="text-center text-gray-500">
+                        De momento no hay contenido para este grupo.
+                    </p>
                 )}
                 {!loading && !error && expenses.length > 0 && (
-                    <ExpenseList expenses={expenses}/>
+                    <ExpenseList expenses={expenses} />
                 )}
 
-                {/* Botón siempre en la parte inferior de la pantalla */}
                 <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2">
                     <button
                         onClick={() => setExpenseModalOpen(true)}
@@ -112,7 +132,7 @@ export function Expense() {
             {isModalOpen && (
                 <AddMemberModal
                     idGroup={idGroup}
-                    onClose={() => setModalOpen(false)} // Cierra el modal
+                    onClose={() => setModalOpen(false)}
                 />
             )}
 
@@ -121,6 +141,12 @@ export function Expense() {
                 onClose={() => setExpenseModalOpen(false)}
                 groupId={idGroup}
                 onSubmit={handleCreateExpense}
+            />
+
+            <BizumsModal
+                isOpen={isBizumsModalOpen}
+                onClose={() => setBizumsModalOpen(false)}
+                bizums={bizums}
             />
         </>
     );

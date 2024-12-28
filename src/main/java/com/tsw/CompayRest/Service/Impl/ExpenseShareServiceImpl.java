@@ -10,6 +10,7 @@ import com.tsw.CompayRest.Service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -36,6 +37,11 @@ public class ExpenseShareServiceImpl implements ExpenseShareService {
         }
 
         return expenseShareDto;
+    }
+
+    @Override
+    public List<ExpenseShareDto> getExpenseShareByExpenseId(Long expenseId) {
+        return expenseShareMapper.toListDto(expenseShareRepository.findAllByExpenseId(expenseId));
     }
 
     @Override

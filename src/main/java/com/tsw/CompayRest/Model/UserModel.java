@@ -2,7 +2,6 @@ package com.tsw.CompayRest.Model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -32,11 +31,4 @@ public class UserModel {
 
     @Column(name = "avatarURL")
     private String avatarURL;
-
-//    // TODO: mirar si realmente lo necesito
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private Set<GroupMemberModel> memberships;
-//    // TODO: mirar si realmente lo necesito
-//    @OneToMany(mappedBy = "destinyUser", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private Set<ExpenseShareModel> expenseShares;
 }

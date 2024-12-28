@@ -4,8 +4,6 @@ import com.tsw.CompayRest.Enum.Currency;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -29,15 +27,4 @@ public class GroupModel {
     @Enumerated(EnumType.STRING)
     @Column(name="currency")
     private Currency currency;
-
-//    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-//    @JoinTable(
-//            name = "group_members",
-//            joinColumns = @JoinColumn(name = "group_id"),
-//            inverseJoinColumns = @JoinColumn(name = "user_id")
-//    )
-//    private Set<UserModel> users;
-
-//    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private Set<GroupMemberModel> members;
 }
