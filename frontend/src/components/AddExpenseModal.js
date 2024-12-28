@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import axiosInstance from "../components/axiosInstance";
+import { jwtDecode } from 'jwt-decode';
 
 const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const [members, setMembers] = useState([]); // Lista de miembros del grupo
@@ -9,13 +11,35 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
     const [shares, setShares] = useState({}); // Almacena la distribución del mapa
 
-    // Cargar miembros del grupo
+
+    const getUserIdFromToken = () => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                return decoded.userId || decoded.id; // AJUSTA SEGÚN LA ESTRUCTURA DE TU TOKEN
+            } catch (err) {
+                console.error("Error decoding token:", err);
+                return null;
+            }
+        }
+        return null;
+    };
+
+    const userId = getUserIdFromToken();
+
     useEffect(() => {
         if (!groupId) return;
-        fetch(`http://localhost:8080/users/1/groups/${groupId}/members`)
-            .then((response) => response.json())
-            .then((data) => setMembers(data))
-            .catch((error) => console.error("Error al cargar miembros:", error));
+
+        const fetchMembers = async () => {
+            try {
+                const response = await axiosInstance.get(`/users/${userId}/groups/${groupId}/members`);
+                setMembers(response.data); // Asignar los datos de la respuesta al estado
+            } catch (error) {
+            }
+        };
+
+        fetchMembers();
     }, [groupId]);
 
     const handleMemberSelection = (email) => {

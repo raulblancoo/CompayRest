@@ -3,8 +3,10 @@ import ExpenseHeader from '../components/ExpenseHeader';
 import ExpenseUnderHeader from '../components/ExpenseUnderHeader';
 import ExpenseList from "../components/ExpenseList";
 import AddMemberModal from "../components/AddMemberModal"; // Importamos el modal
-import { useParams } from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import AddExpenseModal from "../components/AddExpenseModal";
+import axiosInstance from "../components/axiosInstance";
+import { jwtDecode } from 'jwt-decode';
 
 export function Expense() {
     const { idGroup } = useParams(); // Obtenemos el id del grupo desde la URL
@@ -14,55 +16,67 @@ export function Expense() {
     const [isModalOpen, setModalOpen] = useState(false); // Estado para controlar la visibilidad del modal
     const [isExpenseModalOpen, setExpenseModalOpen] = useState(false);
 
-    const handleCreateExpense = async (newExpense) => {
-        try {
-            const response = await fetch(
-                `http://localhost:8080/users/1/groups/${idGroup}/expenses`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(newExpense),
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error("Error al crear el gasto");
+    const getUserIdFromToken = () => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                return decoded.userId || decoded.id; // AJUSTA SEGÚN LA ESTRUCTURA DE TU TOKEN
+            } catch (err) {
+                console.error("Error decoding token:", err);
+                return null;
             }
-
-            const createdExpense = await response.json();
-            setExpenses((prev) => [...prev, createdExpense]);
-            setExpenseModalOpen(false);
-        } catch (error) {
-            console.error("Error creando el gasto:", error);
-            alert("Error al crear el gasto");
         }
+        return null;
     };
+
+    const userId = getUserIdFromToken();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchExpenses = async () => {
-            const url = `http://localhost:8080/users/1/groups/${idGroup}/expenses`;
+            if (!userId) {
+                setError("¡No hay usuario logueado!");
+                setLoading(false);
+                return;
+            }
 
             try {
-                const response = await fetch(url);
-
+                const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/expenses`);
                 if (response.status === 204) {
                     setExpenses([]); // No hay contenido
-                } else if (response.ok) {
-                    const data = await response.json();
-                    setExpenses(data);
                 } else {
-                    throw new Error("Error al obtener los datos");
+                    setExpenses(response.data);
                 }
             } catch (error) {
-                console.error("Error:", error);
-                setError(error.message);
+                console.error("Error al obtener los gastos:", error);
+                setError("Error al obtener los datos");
             } finally {
                 setLoading(false);
             }
         };
 
         fetchExpenses();
-    }, [idGroup]);
+    }, [idGroup, userId]);
+
+    const handleCreateExpense = async (newExpense) => {
+        if (!userId) {
+            alert("¡No hay usuario logueado!");
+            return;
+        }
+
+        try {
+            const response = await axiosInstance.post(
+                `/users/${userId}/groups/${idGroup}/expenses`,
+                newExpense
+            );
+            setExpenses((prev) => [...prev, response.data]);
+            setExpenseModalOpen(false);
+        } catch (error) {
+            console.error("Error creando el gasto:", error);
+            alert("Error al crear el gasto");
+        }
+    };
 
     return (
         <>
