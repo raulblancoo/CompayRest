@@ -1,37 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import ExpenseHeader from '../components/ExpenseHeader';
 import ExpenseUnderHeader from '../components/ExpenseUnderHeader';
 import ExpenseList from "../components/ExpenseList";
-import AddMemberModal from "../components/AddMemberModal"; // Importamos el modal
-import {useNavigate, useParams} from "react-router-dom";
+import AddMemberModal from "../components/AddMemberModal";
+import { useParams } from "react-router-dom";
 import AddExpenseModal from "../components/AddExpenseModal";
 import axiosInstance from "../components/axiosInstance";
-import { jwtDecode } from 'jwt-decode';
+import { getUserIdFromToken } from "../components/AuthUtils";
 
 export function Expense() {
-    const { idGroup } = useParams(); // Obtenemos el id del grupo desde la URL
-    const [expenses, setExpenses] = useState([]); // Estado para los gastos
-    const [loading, setLoading] = useState(true); // Estado para indicar si los datos están cargando
+    const { idGroup } = useParams();
+    const [expenses, setExpenses] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [isModalOpen, setModalOpen] = useState(false); // Estado para controlar la visibilidad del modal
+    const [isModalOpen, setModalOpen] = useState(false);
     const [isExpenseModalOpen, setExpenseModalOpen] = useState(false);
 
-    const getUserIdFromToken = () => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            try {
-                const decoded = jwtDecode(token);
-                return decoded.userId || decoded.id; // AJUSTA SEGÚN LA ESTRUCTURA DE TU TOKEN
-            } catch (err) {
-                console.error("Error decoding token:", err);
-                return null;
-            }
-        }
-        return null;
-    };
-
     const userId = getUserIdFromToken();
-    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchExpenses = async () => {
@@ -44,7 +28,7 @@ export function Expense() {
             try {
                 const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/expenses`);
                 if (response.status === 204) {
-                    setExpenses([]); // No hay contenido
+                    setExpenses([]);
                 } else {
                     setExpenses(response.data);
                 }
@@ -58,6 +42,10 @@ export function Expense() {
 
         fetchExpenses();
     }, [idGroup, userId]);
+
+    const handleDeleteExpense = (expenseId) => {
+        setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense.id !== expenseId));
+    };
 
     const handleCreateExpense = async (newExpense) => {
         if (!userId) {
@@ -83,10 +71,9 @@ export function Expense() {
             <div className="p-4">
                 <h1 className="text-2xl font-bold mb-4">Gastos del Grupo {idGroup}</h1>
 
-                {/* Botones bajo el encabezado */}
                 <ExpenseUnderHeader
-                    onAddMember={() => setModalOpen(true)} // Abre el modal
-                    onShowDebts={() => console.log("Mostrar deudas")} // Agrega tu lógica para mostrar deudas
+                    onAddMember={() => setModalOpen(true)}
+                    onShowDebts={() => console.log("Mostrar deudas")}
                 />
 
                 {loading && <p className="text-center">Loading...</p>}
@@ -95,10 +82,14 @@ export function Expense() {
                     <p className="text-center text-gray-500">De momento no hay contenido para este grupo.</p>
                 )}
                 {!loading && !error && expenses.length > 0 && (
-                    <ExpenseList expenses={expenses}/>
+                    <ExpenseList
+                        expenses={expenses}
+                        userId={userId}
+                        groupId={idGroup}
+                        onDeleteExpense={handleDeleteExpense}
+                    />
                 )}
 
-                {/* Botón siempre en la parte inferior de la pantalla */}
                 <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2">
                     <button
                         onClick={() => setExpenseModalOpen(true)}
@@ -112,7 +103,7 @@ export function Expense() {
             {isModalOpen && (
                 <AddMemberModal
                     idGroup={idGroup}
-                    onClose={() => setModalOpen(false)} // Cierra el modal
+                    onClose={() => setModalOpen(false)}
                 />
             )}
 

@@ -6,6 +6,7 @@ import com.tsw.CompayRest.Repository.ExpenseRepository;
 import com.tsw.CompayRest.Service.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +30,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    @Transactional
     public boolean deleteExpense(Long expenseId) {
         return expenseRepository.findById(expenseId).map(expense -> {
             expenseRepository.delete(expense);

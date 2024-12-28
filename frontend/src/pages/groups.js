@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import GroupList from "../components/GroupList";
 import axiosInstance from "../components/axiosInstance";
-import { jwtDecode } from 'jwt-decode';
 import {useNavigate} from "react-router-dom";
 import GroupModal from "../components/GroupModal";
+import { getUserIdFromToken } from "../components/AuthUtils";
 
 export function Groups() {
     const [groups, setGroups] = useState([]);
@@ -11,22 +11,9 @@ export function Groups() {
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const getUserIdFromToken = () => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const decoded = jwtDecode(token);
-                return decoded.userId || decoded.id; // AJUSTA SEGÚN LA ESTRUCTURA DE TU TOKEN
-            } catch (err) {
-                console.error("Error decoding token:", err);
-                return null;
-            }
-        }
-        return null;
-    };
 
     const userId = getUserIdFromToken();
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
 
     useEffect(() => {
         const fetchGroups = async () => {
