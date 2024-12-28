@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import GroupList from "../components/GroupList";
 import axiosInstance from "../components/axiosInstance";
-import Modal from "../components/Modal";
 import { jwtDecode } from 'jwt-decode';
 import {useNavigate} from "react-router-dom";
-import axios from "axios";
 import GroupModal from "../components/GroupModal";
 
 export function Groups() {
