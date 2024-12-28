@@ -8,8 +8,8 @@ function ExpenseList({ expenses }) {
             <div className="container mx-auto px-6 pb-32">
                 {expenses.map((expense, index) => (
                     <div key={expense.id}>
-                        {/* Mostrar la fecha solo si es el primer gasto de un grupo por fecha */}
-                        {(index === 0 || expense.expense_date !== expenses[index - 1].expense_date) && (
+                        {/* Mostrar la fecha solo si es diferente a la anterior */}
+                        {(index === 0 || new Date(expense.expense_date).toDateString() !== new Date(expenses[index - 1].expense_date).toDateString()) && (
                             <div>
                                 <ExpenseDate expense={expense} />
                             </div>
