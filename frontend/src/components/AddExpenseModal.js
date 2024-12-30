@@ -93,7 +93,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         }));
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const totalAmount = parseFloat(amount);
 
         // Validar que el monto sea positivo
@@ -102,29 +102,14 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             return;
         }
 
-        let finalShares = { ...shares }; // Por defecto, usar lo que ya esté en shares
-
-        if (shareMethod === "PORCENTAJES") {
-            const totalPercentage = Object.values(shares).reduce((sum, percentage) => sum + percentage, 0);
-
-            if (totalPercentage !== 100) {
-                alert("La suma de los porcentajes debe ser igual a 100.");
-                return;
-            }
-
-            finalShares = Object.keys(shares).reduce((acc, email) => {
-                acc[email] = (totalAmount * shares[email]) / 100;
-                return acc;
-            }, {});
+        if (!selectedPayer) {
+            alert("Selecciona un pagador.");
+            return;
         }
 
-        // Validar que la suma de las participaciones coincida con el monto total para "PARTESDESIGUALES"
-        if (shareMethod === "PARTESDESIGUALES") {
-            const totalShares = Object.values(finalShares).reduce((sum, share) => sum + share, 0);
-            if (totalShares !== totalAmount) {
-                alert("La suma de las participaciones debe coincidir con el monto total.");
-                return;
-            }
+        if (selectedMembers.length === 0) {
+            alert("Selecciona al menos un miembro.");
+            return;
         }
 
         // Preparar los datos para enviar
@@ -133,13 +118,20 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             expense_name: expenseName,
             originUserId: selectedPayer,
             share_method: shareMethod,
-            shares: finalShares, // Usar los valores calculados
+            shares: shares, // Asegúrate de que el objeto `shares` tenga el formato correcto
         };
 
-        // Enviar los datos al backend
-        onSubmit(data);
-        onClose();
+        try {
+            // Enviar los datos al backend
+            const response = await axiosInstance.post(`/users/${userId}/groups/${groupId}/expenses`, data);
+            onSubmit(response.data); // Pasar el gasto recién creado al componente padre
+            onClose(); // Cerrar el modal
+        } catch (error) {
+            console.error("Error al crear el gasto:", error);
+            alert("Hubo un error al crear el gasto. Inténtalo nuevamente.");
+        }
     };
+
 
     if (!isOpen) return null;
 

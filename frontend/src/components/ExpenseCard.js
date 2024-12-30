@@ -1,7 +1,7 @@
 import React from 'react';
-import axiosInstance from './axiosInstance'; // Asegúrate de importar axiosInstance
+import axiosInstance from './axiosInstance';
 
-function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown, onDelete }) {
+function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown, onDelete, onEdit }) {
     const { origin_user, amount, group, expense_name, id } = expense;
 
     const handleDelete = async () => {
@@ -63,7 +63,7 @@ function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown,
                             <li>
                                 <button
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 hover:text-black"
-                                    onClick={() => console.log(`Editar gasto ${id}`)}
+                                    onClick={() => onEdit(expense)} // Llamar a la función de edición
                                 >
                                     Editar
                                 </button>
