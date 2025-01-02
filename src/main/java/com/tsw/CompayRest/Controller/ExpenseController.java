@@ -104,13 +104,20 @@ public class ExpenseController {
     }
 
     @DeleteMapping("/{expenseId}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable("expenseId") Long expenseId) {
-        boolean deletedShare = expenseShareService.deleteAll(expenseId);
-        boolean deletedExp = expenseService.deleteExpense(expenseId);
-        if (deletedExp && deletedShare) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> deleteExpense(@PathVariable("groupId") Long groupId, @PathVariable("expenseId") Long expenseId) {
+        Optional<ExpenseDto> toDelete = expenseService.getExpenseById(expenseId);
+
+        if(toDelete.isPresent()) {
+            boolean deletedShare = expenseShareService.deleteAll(expenseId);
+            boolean deletedExp = expenseService.deleteExpense(expenseId);
+
+            if(deletedShare && deletedExp) {
+                groupService.updateGroupAmount(groupId,-toDelete.get().getAmount());
+                return ResponseEntity.noContent().build();
+            }
+
         }
+
+        return ResponseEntity.notFound().build();
     }
 }
