@@ -40,7 +40,4 @@ public class ExpenseModel {
     @Enumerated(EnumType.STRING)
     @Column(name = "share_method")
     private ShareMethod share_method;
-
-    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ExpenseShareModel> destinyUsers;
 }
