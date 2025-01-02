@@ -41,6 +41,6 @@ public class ExpenseModel {
     @Column(name = "share_method")
     private ShareMethod share_method;
 
-    @OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ExpenseShareModel> destinyUsers;
+    //@OneToMany(mappedBy = "expense", cascade = CascadeType.ALL, orphanRemoval = true)
+    //private Set<ExpenseShareModel> destinyUsers;
 }

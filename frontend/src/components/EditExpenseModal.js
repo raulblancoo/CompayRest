@@ -3,21 +3,36 @@ import axiosInstance from "./axiosInstance";
 
 const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
     const [members, setMembers] = useState([]);
-    const [selectedPayer, setSelectedPayer] = useState(expense.origin_user.id || "");
-    const [selectedMembers, setSelectedMembers] = useState(
-        Object.keys(expense.shares || {})
-    );
-    const [expenseName, setExpenseName] = useState(expense.expense_name || "");
-    const [amount, setAmount] = useState(expense.amount || "");
-    const [shareMethod, setShareMethod] = useState(expense.share_method || "PARTESIGUALES");
-    const [shares, setShares] = useState(expense.shares || {});
+    const [selectedPayer, setSelectedPayer] = useState("");
+    const [selectedMembers, setSelectedMembers] = useState([]);
+    const [expenseName, setExpenseName] = useState("");
+    const [amount, setAmount] = useState("");
+    const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
+    const [shares, setShares] = useState({});
 
+    // Sincronizar estados con el gasto recibido
+    useEffect(() => {
+        console.log("Expense data:", expense);
+        console.log("Shares:", expense.shares);
+        if (expense) {
+            setSelectedPayer(expense.origin_user.id || "");
+            setSelectedMembers(Object.keys(expense.shares || {}));
+            setExpenseName(expense.expense_name || "");
+            setAmount(expense.amount || "");
+            setShareMethod(expense.share_method || "PARTESIGUALES");
+            setShares(expense.shares || {});
+        }
+    }, [expense]);
+
+    // Cargar miembros del grupo
     useEffect(() => {
         if (!groupId) return;
 
         const fetchMembers = async () => {
             try {
-                const response = await axiosInstance.get(`/users/${expense.origin_user.id}/groups/${groupId}/members`);
+                const response = await axiosInstance.get(
+                    `/users/${expense.origin_user.id}/groups/${groupId}/members`
+                );
                 setMembers(response.data);
             } catch (error) {
                 console.error("Error al cargar los miembros:", error);
@@ -27,6 +42,22 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
         fetchMembers();
     }, [groupId, expense.origin_user.id]);
 
+    useEffect(() => {
+        if (!expense || !expense.id) return;
+
+        const fetchExpenseDetails = async () => {
+            try {
+                const response = await axiosInstance.get(`/users/${expense.origin_user.id}/groups/${groupId}/expenses/${expense.id}`);
+                console.log("Expense details:", response.data); // Verifica la respuesta
+                setShares(response.data.shares || {}); // Configura los shares correctamente
+            } catch (error) {
+                console.error("Error al cargar el detalle del gasto:", error);
+            }
+        };
+
+        fetchExpenseDetails();
+    }, [expense, expense.origin_user.id, groupId]);
+
     const handleMemberSelection = (email) => {
         setSelectedMembers((prev) =>
             prev.includes(email)
@@ -35,38 +66,29 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
         );
     };
 
-    const calculateShares = () => {
-        const totalAmount = parseFloat(amount);
-        if (isNaN(totalAmount) || totalAmount <= 0) return;
-
-        const selectedCount = selectedMembers.length;
-
-        if (shareMethod === "PARTESIGUALES" && selectedCount > 0) {
-            const equalShare = totalAmount / selectedCount;
-            setShares(
-                selectedMembers.reduce((acc, email) => {
-                    acc[email] = equalShare;
-                    return acc;
-                }, {})
-            );
-        }
-    };
-
-    useEffect(() => {
-        calculateShares();
-    }, [shareMethod, amount, selectedMembers]);
-
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const updatedExpense = {
             ...expense,
             amount: parseFloat(amount),
             expense_name: expenseName,
-            originUserId: selectedPayer,
             share_method: shareMethod,
+            origin_user: { id: selectedPayer },
             shares: shares,
+            group: { id: groupId },
+            expense_date: new Date().toISOString(),
         };
-        onSubmit(updatedExpense);
-        onClose();
+
+        try {
+            const response = await axiosInstance.put(
+                `/users/${expense.origin_user.id}/groups/${groupId}/expenses/${expense.id}`,
+                updatedExpense
+            );
+            onSubmit(response.data);
+            onClose();
+        } catch (error) {
+            console.error("Error al actualizar el gasto:", error);
+            alert("Hubo un error al actualizar el gasto. Inténtalo nuevamente.");
+        }
     };
 
     if (!isOpen) return null;
