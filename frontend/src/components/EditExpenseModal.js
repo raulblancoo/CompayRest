@@ -8,55 +8,41 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
     const [expenseName, setExpenseName] = useState("");
     const [amount, setAmount] = useState("");
     const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
-    const [shares, setShares] = useState({});
+    const [shares, setShares] = useState([]);
 
-    // Sincronizar estados con el gasto recibido
     useEffect(() => {
-        console.log("Expense data:", expense);
-        console.log("Shares:", expense.shares);
-        if (expense) {
-            setSelectedPayer(expense.origin_user.id || "");
-            setSelectedMembers(Object.keys(expense.shares || {}));
-            setExpenseName(expense.expense_name || "");
-            setAmount(expense.amount || "");
-            setShareMethod(expense.share_method || "PARTESIGUALES");
-            setShares(expense.shares || {});
-        }
-    }, [expense]);
+        if (!expense || !expense.id || !groupId) return;
 
-    // Cargar miembros del grupo
-    useEffect(() => {
-        if (!groupId) return;
-
-        const fetchMembers = async () => {
+        const fetchData = async () => {
             try {
-                const response = await axiosInstance.get(
+                // Fetch expense details
+                const expenseResponse = await axiosInstance.get(
+                    `/users/${expense.origin_user.id}/groups/${groupId}/expenses/${expense.id}`
+                );
+
+
+                // Extract emails from shares
+                const emails = expenseResponse.data.shares.map(share => share.destiny_user.email);
+                setSelectedMembers(emails);
+
+                // Fetch group members
+                const membersResponse = await axiosInstance.get(
                     `/users/${expense.origin_user.id}/groups/${groupId}/members`
                 );
-                setMembers(response.data);
+                setMembers(membersResponse.data);
+
+                // Set initial values
+                setSelectedPayer(expense.origin_user.id || "");
+                setExpenseName(expense.expense_name || "");
+                setAmount(expense.amount || "");
+                setShareMethod(expense.share_method || "PARTESIGUALES");
             } catch (error) {
-                console.error("Error al cargar los miembros:", error);
+                console.error("Error al cargar los datos:", error);
             }
         };
 
-        fetchMembers();
-    }, [groupId, expense.origin_user.id]);
-
-    useEffect(() => {
-        if (!expense || !expense.id) return;
-
-        const fetchExpenseDetails = async () => {
-            try {
-                const response = await axiosInstance.get(`/users/${expense.origin_user.id}/groups/${groupId}/expenses/${expense.id}`);
-                console.log("Expense details:", response.data); // Verifica la respuesta
-                setShares(response.data.shares || {}); // Configura los shares correctamente
-            } catch (error) {
-                console.error("Error al cargar el detalle del gasto:", error);
-            }
-        };
-
-        fetchExpenseDetails();
-    }, [expense, expense.origin_user.id, groupId]);
+        fetchData();
+    }, [expense, groupId]);
 
     const handleMemberSelection = (email) => {
         setSelectedMembers((prev) =>
@@ -73,7 +59,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
             expense_name: expenseName,
             share_method: shareMethod,
             origin_user: { id: selectedPayer },
-            shares: shares,
+            shares: selectedMembers.map(email => ({ destiny_user: { email } })), // Map emails back to shares structure
             group: { id: groupId },
             expense_date: new Date().toISOString(),
         };
@@ -87,7 +73,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
             onClose();
         } catch (error) {
             console.error("Error al actualizar el gasto:", error);
-            alert("Hubo un error al actualizar el gasto. Inténtalo nuevamente.");
+
         }
     };
 

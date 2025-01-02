@@ -7,7 +7,6 @@ function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown,
     const handleDelete = async () => {
         try {
             await axiosInstance.delete(`/users/${userId}/groups/${groupId}/expenses/${id}`);
-            console.log(`Gasto ${id} eliminado con éxito`);
             onDelete(id); // Notificar al componente padre que se eliminó un gasto
         } catch (error) {
             console.error(`Error al eliminar el gasto ${id}:`, error);

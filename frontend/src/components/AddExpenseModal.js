@@ -65,7 +65,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             }, 0);
 
             if (totalPercentage !== 100) {
-                alert("Los porcentajes deben sumar 100%");
+
                 return; // Salir de la función si la validación falla
             }
 
@@ -98,17 +98,17 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
         // Validar que el monto sea positivo
         if (isNaN(totalAmount) || totalAmount <= 0) {
-            alert("Por favor, introduce un monto válido.");
+
             return;
         }
 
         if (!selectedPayer) {
-            alert("Selecciona un pagador.");
+
             return;
         }
 
         if (selectedMembers.length === 0) {
-            alert("Selecciona al menos un miembro.");
+
             return;
         }
 
@@ -128,7 +128,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             onClose(); // Cerrar el modal
         } catch (error) {
             console.error("Error al crear el gasto:", error);
-            alert("Hubo un error al crear el gasto. Inténtalo nuevamente.");
+
         }
     };
 

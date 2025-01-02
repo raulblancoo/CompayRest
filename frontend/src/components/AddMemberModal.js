@@ -24,11 +24,11 @@ const AddMemberModal = ({ onClose, idGroup }) => {
     const handleSubmit = async () => {
         try {
             const response = await axiosInstance.post(`/users/${userId}/groups/${idGroup}/members/email`, emails);
-            alert('Miembros añadidos correctamente');
+
             onClose();
         } catch (error) {
             console.error(error);
-            alert('Ocurrió un error al añadir los miembros');
+
         }
     };
 

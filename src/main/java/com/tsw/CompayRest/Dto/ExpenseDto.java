@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -19,5 +20,5 @@ public class ExpenseDto {
     private UserDto origin_user;
     private GroupDto group;
     private ShareMethod share_method;
-    private Map<String,Double> shares;
+    private List<ExpenseShareDto> shares;
 }

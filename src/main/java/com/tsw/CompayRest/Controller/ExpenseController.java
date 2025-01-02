@@ -52,16 +52,7 @@ public class ExpenseController {
         if (expense.isPresent()) {
             ExpenseDto expenseDto = expense.get(); // Extraer el objeto del Optional
 
-
-            Map<String, Double> shares = Optional.ofNullable(expenseDto.getShares())
-                    .orElse(Collections.emptyMap()) // Asegurarse de que no sea null
-                    .entrySet().stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue
-                    ));
-
-            expenseDto.setShares(shares);
+            expenseDto.setShares(expenseShareService.getExpenseShareByExpenseId(expenseId));
 
             return ResponseEntity.ok(expenseDto);
         }
@@ -117,10 +108,8 @@ public class ExpenseController {
 
              expenseShareService.deleteAll(expenseId);
 
-            for (Map.Entry<String, Double> entry : updatedExpense.getShares().entrySet()) {
-                String userEmail = entry.getKey();
-                Double assignedAmount = entry.getValue();
-                expenseShareService.save(savedExpense.getId(), userEmail, assignedAmount);
+            for (ExpenseShareDto expense : updatedExpense.getShares()) {
+                expenseShareService.save(savedExpense.getId(), String.valueOf(expense.getDestiny_user().getEmail()), expense.getAssignedAmount());
             }
 
             return ResponseEntity.ok(savedExpense);  // HTTP 200 OK
