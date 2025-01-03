@@ -3,13 +3,14 @@ import axiosInstance from "../components/axiosInstance";
 import { getUserIdFromToken } from "./AuthUtils";
 
 const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
-    const [members, setMembers] = useState([]); // Lista de miembros del grupo
-    const [selectedPayer, setSelectedPayer] = useState(""); // Miembro pagador
-    const [selectedMembers, setSelectedMembers] = useState([]); // Miembros seleccionados para compartir gasto
+    const [members, setMembers] = useState([]);
+    const [selectedPayer, setSelectedPayer] = useState("");
+    const [selectedMembers, setSelectedMembers] = useState([]);
     const [expenseName, setExpenseName] = useState("");
     const [amount, setAmount] = useState("");
     const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
-    const [shares, setShares] = useState({}); // Almacena la distribución del mapa
+    const [shares, setShares] = useState({});
+    const [errors, setErrors] = useState({});
 
     const userId = getUserIdFromToken();
 
@@ -19,72 +20,25 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         const fetchMembers = async () => {
             try {
                 const response = await axiosInstance.get(`/users/${userId}/groups/${groupId}/members`);
-                setMembers(response.data); // Asignar los datos de la respuesta al estado
+                const membersData = response.data;
+                setMembers(membersData);
+                setSelectedPayer(userId);
+                setSelectedMembers(membersData.map((member) => member.email));
             } catch (error) {
+                console.error("Error al cargar miembros del grupo:", error);
             }
         };
 
         fetchMembers();
-    }, [groupId]);
+    }, [groupId, userId]);
 
     const handleMemberSelection = (email) => {
         setSelectedMembers((prev) =>
             prev.includes(email)
-                ? prev.filter((member) => member !== email) // Deselect member
-                : [...prev, email] // Select member
+                ? prev.filter((member) => member !== email)
+                : [...prev, email]
         );
     };
-
-    const calculateShares = () => {
-        const totalAmount = parseFloat(amount); // Convertir a número
-        if (isNaN(totalAmount) || totalAmount <= 0) return; // Validar monto positivo
-
-        const selectedCount = selectedMembers.length;
-
-        if (shareMethod === "PARTESIGUALES" && selectedCount > 0) {
-            // Reparto en partes iguales
-            const equalShare = totalAmount / selectedCount;
-            setShares(
-                selectedMembers.reduce((acc, email) => {
-                    acc[email] = equalShare;
-                    return acc;
-                }, {})
-            );
-        } else if (shareMethod === "PARTESDESIGUALES") {
-            // Reparto en partes desiguales: conservar valores existentes
-            setShares(
-                selectedMembers.reduce((acc, email) => {
-                    acc[email] = shares[email] || 0; // Mantener valores previos o asignar 0
-                    return acc;
-                }, {})
-            );
-        } else if (shareMethod === "PORCENTAJES") {
-            // Validar que los porcentajes sumen 100
-            const totalPercentage = selectedMembers.reduce((sum, email) => {
-                return sum + (shares[email] || 0);
-            }, 0);
-
-            if (totalPercentage !== 100) {
-
-                return; // Salir de la función si la validación falla
-            }
-
-            // Crear un nuevo objeto con los montos calculados
-            const calculatedShares = selectedMembers.reduce((acc, email) => {
-                const percentage = shares[email] || 0; // Obtener porcentaje del miembro
-                acc[email] = (totalAmount * percentage) / 100; // Calcular monto
-                return acc;
-            }, {});
-
-            // Actualizar el estado de shares con los montos calculados
-            setShares(calculatedShares);
-        }
-    };
-
-
-    useEffect(() => {
-        calculateShares();
-    }, [shareMethod, amount, selectedMembers]);
 
     const handleShareChange = (email, value) => {
         setShares((prev) => ({
@@ -93,43 +47,80 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         }));
     };
 
-    const handleSubmit = async () => {
+    const resetForm = () => {
+        setSelectedPayer(userId);
+        setSelectedMembers(members.map((member) => member.email));
+        setExpenseName("");
+        setAmount("");
+        setShareMethod("PARTESIGUALES");
+        setShares({});
+        setErrors({});
+    };
+
+    const handleSubmit = () => {
         const totalAmount = parseFloat(amount);
+        const newErrors = {};
 
-        // Validar que el monto sea positivo
+        // Validar nombre del gasto
+        if (!expenseName || expenseName.length > 30) {
+            newErrors.expenseName = "El nombre del gasto no puede tener más de 30 caracteres.";
+        }
+
+        // Validar cantidad positiva
         if (isNaN(totalAmount) || totalAmount <= 0) {
+            newErrors.amount = "La cantidad del pago debe ser positiva.";
+        }
 
+        // Calcular y validar shares
+        let finalShares = {};
+        if (shareMethod === "PARTESIGUALES") {
+            const equalShare = totalAmount / selectedMembers.length;
+            finalShares = selectedMembers.reduce((acc, email) => {
+                acc[email] = parseFloat(equalShare.toFixed(2));
+                return acc;
+            }, {});
+        } else if (shareMethod === "PARTESDESIGUALES") {
+            const totalShares = Object.values(shares).reduce((sum, share) => sum + share, 0);
+            if (totalShares !== totalAmount) {
+                newErrors.shares = "La suma de la distribución debe coincidir con la cantidad total.";
+            } else {
+                finalShares = { ...shares };
+            }
+        } else if (shareMethod === "PORCENTAJES") {
+            const totalPercentage = Object.values(shares).reduce((sum, percentage) => sum + percentage, 0);
+            if (totalPercentage !== 100) {
+                newErrors.shares = "La suma de los porcentajes debe ser igual a 100.";
+            } else {
+                finalShares = selectedMembers.reduce((acc, email) => {
+                    acc[email] = parseFloat(((totalAmount * shares[email]) / 100).toFixed(2));
+                    return acc;
+                }, {});
+            }
+        }
+
+        // Si hay errores, detener envío
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
 
-        if (!selectedPayer) {
-
-            return;
-        }
-
-        if (selectedMembers.length === 0) {
-
-            return;
-        }
-
-        // Preparar los datos para enviar
         const data = {
             amount: totalAmount,
             expense_name: expenseName,
             originUserId: selectedPayer,
             share_method: shareMethod,
-            shares: shares, // Asegúrate de que el objeto `shares` tenga el formato correcto
+            shares: finalShares,
         };
 
-        try {
-            // Enviar los datos al backend
-            const response = await axiosInstance.post(`/users/${userId}/groups/${groupId}/expenses`, data);
-            onSubmit(response.data); // Pasar el gasto recién creado al componente padre
-            onClose(); // Cerrar el modal
-        } catch (error) {
-            console.error("Error al crear el gasto:", error);
+        onSubmit(data);
+        resetForm();
+        onClose();
+    };
 
-        }
+    const handleClose = () => {
+        setErrors({});
+        resetForm();
+        onClose();
     };
 
 
@@ -137,20 +128,16 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white rounded-lg shadow-lg w-96 p-6">
+            <div className="bg-white rounded-lg shadow-lg w-96 p-6 max-h-[70vh] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-4">Crear Nuevo Gasto</h2>
                 <form>
-                    {/* Selector: Pagador */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Pagador
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700">Pagador</label>
                         <select
                             value={selectedPayer}
                             onChange={(e) => setSelectedPayer(e.target.value)}
                             className="w-full border border-gray-300 rounded-md p-2 mt-1"
                         >
-                            <option value="">Selecciona un miembro</option>
                             {members.map((member) => (
                                 <option key={member.id} value={member.id}>
                                     {member.name} {member.surname}
@@ -159,11 +146,8 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         </select>
                     </div>
 
-                    {/* Checkboxes: Selección de miembros */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Miembros del grupo
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700">Miembros del grupo</label>
                         {members.map((member) => (
                             <div key={member.email} className="flex items-center">
                                 <input
@@ -174,43 +158,36 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                                     className="mr-2"
                                 />
                                 <label htmlFor={`member-${member.email}`}>
-                                    {member.name} {member.surname} ({member.email})
+                                    {member.name} {member.surname}
                                 </label>
                             </div>
                         ))}
                     </div>
 
-                    {/* Input: Nombre del gasto */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Nombre del Gasto
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700">Nombre del Gasto</label>
                         <input
                             type="text"
                             value={expenseName}
                             onChange={(e) => setExpenseName(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                            className={`w-full border ${errors.expenseName ? "border-red-500" : "border-gray-300"} rounded-md p-2 mt-1`}
                         />
+                        {errors.expenseName && <p className="text-red-500 text-sm mt-1">{errors.expenseName}</p>}
                     </div>
 
-                    {/* Input: Cantidad Total */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Cantidad total
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700">Cantidad total</label>
                         <input
                             type="number"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                            className={`w-full border ${errors.amount ? "border-red-500" : "border-gray-300"} rounded-md p-2 mt-1`}
                         />
+                        {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
                     </div>
 
-                    {/* Selector: Método de Compartición */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Método de División
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700">Método de División</label>
                         <select
                             value={shareMethod}
                             onChange={(e) => setShareMethod(e.target.value)}
@@ -222,41 +199,40 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         </select>
                     </div>
 
-                    {/*TODO: cambiar para que muestre los nombres aunque envíe los emails*/}
-                    {/* Inputs dinámicos: Según el método de compartición */}
                     {selectedMembers.length > 0 && shareMethod !== "PARTESIGUALES" && (
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700">
                                 {shareMethod === "PARTESDESIGUALES" ? "Distribución" : "Porcentajes"}
                             </label>
-                            {selectedMembers.map((email) => (
-                                <div key={email} className="flex items-center gap-2 mt-2">
-                                    <span className="w-1/2">{email}</span>
-                                    <input
-                                        type="number"
-                                        value={shares[email] || ""}
-                                        onChange={(e) =>
-                                            handleShareChange(email, e.target.value)
-                                        }
-                                        className="w-1/2 border border-gray-300 rounded-md p-2"
-                                    />
-                                </div>
-                            ))}
+                            {selectedMembers.map((email) => {
+                                const member = members.find((m) => m.email === email);
+                                return (
+                                    <div key={email} className="flex items-center gap-2 mt-2">
+                                        <span className="w-1/2">{member?.name} {member?.surname}</span>
+                                        <input
+                                            type="number"
+                                            value={shares[email] || ""}
+                                            onChange={(e) => handleShareChange(email, e.target.value)}
+                                            className={`w-1/2 border ${errors.shares ? "border-red-500" : "border-gray-300"} rounded-md p-2`}
+                                        />
+                                    </div>
+                                );
+                            })}
+                            {errors.shares && <p className="text-red-500 text-sm mt-1">{errors.shares}</p>}
                         </div>
                     )}
                 </form>
 
-                {/* Botones */}
                 <div className="flex justify-end gap-2 mt-4">
                     <button
-                        onClick={onClose}
+                        onClick={handleClose}
                         className="bg-gray-300 px-4 py-2 rounded-md"
                     >
                         Cerrar
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                        className="bg-sky-500 hover:bg-cyan-700 text-white px-4 py-2 rounded-md"
                     >
                         Enviar
                     </button>

@@ -1,5 +1,6 @@
 import React from 'react';
 import axiosInstance from './axiosInstance';
+import { getCurrencySymbol } from './CurrencyUtils'; // Importamos la función para obtener el símbolo
 
 function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown, onDelete, onEdit }) {
     const { origin_user, amount, group, expense_name, id } = expense;
@@ -23,11 +24,10 @@ function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown,
                 alt={origin_user.username}
             />
             <p className="text-gray-700 font-thin sm:me-6">
-                <span className="font-bold uppercase">{origin_user.username}</span>{' '}
+                <span className="font-bold uppercase">{origin_user.username}</span>{' pagó '}
                 <span className="text-green-600 font-bold">
-                    {amount}{' '}
-                    {group.currency === 'EURO' ? '€' : group.currency === 'DOLAR' ? '$' : group.currency}
-                </span>{' '}
+                    {amount}{getCurrencySymbol(group.currency)}
+                </span>{' por '}
                 <span className="font-bold uppercase">{expense_name}</span>
             </p>
 
