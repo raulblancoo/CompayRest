@@ -1,48 +1,68 @@
 import React, { useState, useEffect } from "react";
-import axiosInstance from "../components/axiosInstance";
-import { getUserIdFromToken } from "./AuthUtils";
+import axiosInstance from "./axiosInstance";
 
-const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
-    const [members, setMembers] = useState([]); // Lista de miembros del grupo
-    const [selectedPayer, setSelectedPayer] = useState(""); // Miembro pagador
-    const [selectedMembers, setSelectedMembers] = useState([]); // Miembros seleccionados para compartir gasto
+const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
+    const [members, setMembers] = useState([]);
+    const [selectedPayer, setSelectedPayer] = useState("");
+    const [selectedMembers, setSelectedMembers] = useState([]);
     const [expenseName, setExpenseName] = useState("");
     const [amount, setAmount] = useState("");
     const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
-    const [shares, setShares] = useState({}); // Almacena la distribución del mapa
-
-    const userId = getUserIdFromToken();
+    const [shares, setShares] = useState({});
 
     useEffect(() => {
-        if (!groupId) return;
+        if (!expense || !expense.id || !groupId) return;
 
-        const fetchMembers = async () => {
+        const fetchData = async () => {
             try {
-                const response = await axiosInstance.get(`/users/${userId}/groups/${groupId}/members`);
-                setMembers(response.data); // Asignar los datos de la respuesta al estado
+                // Fetch expense details
+                const expenseResponse = await axiosInstance.get(
+                    `/users/${expense.origin_user.id}/groups/${groupId}/expenses/${expense.id}`
+                );
+
+                // Extract emails and shares
+                const fetchedShares = expenseResponse.data.shares.reduce((acc, share) => {
+                    acc[share.destiny_user.email] = share.assignedAmount || 0;
+                    return acc;
+                }, {});
+
+                setShares(fetchedShares);
+                const emails = Object.keys(fetchedShares);
+                setSelectedMembers(emails);
+
+                // Fetch group members
+                const membersResponse = await axiosInstance.get(
+                    `/users/${expense.origin_user.id}/groups/${groupId}/members`
+                );
+                setMembers(membersResponse.data);
+
+                setSelectedPayer(expense.origin_user.id || "");
+                setExpenseName(expense.expense_name || "");
+                setAmount(expense.amount || "");
+                setShareMethod(expense.share_method || "PARTESIGUALES");
             } catch (error) {
+                console.error("Error al cargar los datos:", error);
             }
         };
 
-        fetchMembers();
-    }, [groupId]);
+        fetchData();
+    }, [expense, groupId]);
 
     const handleMemberSelection = (email) => {
         setSelectedMembers((prev) =>
             prev.includes(email)
-                ? prev.filter((member) => member !== email) // Deselect member
-                : [...prev, email] // Select member
+                ? prev.filter((member) => member !== email)
+                : [...prev, email]
         );
     };
 
     const calculateShares = () => {
-        const totalAmount = parseFloat(amount); // Convertir a número
-        if (isNaN(totalAmount) || totalAmount <= 0) return; // Validar monto positivo
+        const totalAmount = parseFloat(amount);
+        if (isNaN(totalAmount) || totalAmount <= 0) return;
 
         const selectedCount = selectedMembers.length;
 
         if (shareMethod === "PARTESIGUALES" && selectedCount > 0) {
-            // Reparto en partes iguales
             const equalShare = totalAmount / selectedCount;
             setShares(
                 selectedMembers.reduce((acc, email) => {
@@ -51,36 +71,31 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                 }, {})
             );
         } else if (shareMethod === "PARTESDESIGUALES") {
-            // Reparto en partes desiguales: conservar valores existentes
             setShares(
                 selectedMembers.reduce((acc, email) => {
-                    acc[email] = shares[email] || 0; // Mantener valores previos o asignar 0
+                    acc[email] = shares[email] || 0;
                     return acc;
                 }, {})
             );
         } else if (shareMethod === "PORCENTAJES") {
-            // Validar que los porcentajes sumen 100
             const totalPercentage = selectedMembers.reduce((sum, email) => {
                 return sum + (shares[email] || 0);
             }, 0);
 
             if (totalPercentage !== 100) {
-
-                return; // Salir de la función si la validación falla
+                console.error("La suma de los porcentajes debe ser igual a 100.");
+                return;
             }
 
-            // Crear un nuevo objeto con los montos calculados
-            const calculatedShares = selectedMembers.reduce((acc, email) => {
-                const percentage = shares[email] || 0; // Obtener porcentaje del miembro
-                acc[email] = (totalAmount * percentage) / 100; // Calcular monto
-                return acc;
-            }, {});
-
-            // Actualizar el estado de shares con los montos calculados
-            setShares(calculatedShares);
+            setShares(
+                selectedMembers.reduce((acc, email) => {
+                    const percentage = shares[email] || 0;
+                    acc[email] = (totalAmount * percentage) / 100;
+                    return acc;
+                }, {})
+            );
         }
     };
-
 
     useEffect(() => {
         calculateShares();
@@ -96,55 +111,45 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const handleSubmit = async () => {
         const totalAmount = parseFloat(amount);
 
-        // Validar que el monto sea positivo
-        if (isNaN(totalAmount) || totalAmount <= 0) {
+        if (isNaN(totalAmount) || totalAmount <= 0) return;
+        if (!selectedPayer) return;
+        if (selectedMembers.length === 0) return;
 
-            return;
-        }
-
-        if (!selectedPayer) {
-
-            return;
-        }
-
-        if (selectedMembers.length === 0) {
-
-            return;
-        }
-
-        // Preparar los datos para enviar
-        const data = {
+        const updatedExpense = {
+            ...expense,
             amount: totalAmount,
             expense_name: expenseName,
-            originUserId: selectedPayer,
             share_method: shareMethod,
-            shares: shares, // Asegúrate de que el objeto `shares` tenga el formato correcto
+            origin_user: { id: selectedPayer },
+            shares: selectedMembers.map(email => ({
+                destiny_user: { email },
+                assignedAmount: shares[email] || 0,
+            })),
+            group: { id: groupId },
+            expense_date: new Date().toISOString(),
         };
 
         try {
-            // Enviar los datos al backend
-            const response = await axiosInstance.post(`/users/${userId}/groups/${groupId}/expenses`, data);
-            onSubmit(response.data); // Pasar el gasto recién creado al componente padre
-            onClose(); // Cerrar el modal
+            const response = await axiosInstance.put(
+                `/users/${expense.origin_user.id}/groups/${groupId}/expenses/${expense.id}`,
+                updatedExpense
+            );
+            onSubmit(response.data);
+            onClose();
         } catch (error) {
-            console.error("Error al crear el gasto:", error);
-
+            console.error("Error al actualizar el gasto:", error);
         }
     };
-
 
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-96 p-6">
-                <h2 className="text-xl font-semibold mb-4">Crear Nuevo Gasto</h2>
+                <h2 className="text-xl font-semibold mb-4">Editar Gasto</h2>
                 <form>
-                    {/* Selector: Pagador */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Pagador
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700">Pagador</label>
                         <select
                             value={selectedPayer}
                             onChange={(e) => setSelectedPayer(e.target.value)}
@@ -159,50 +164,38 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         </select>
                     </div>
 
-                    {/* Checkboxes: Selección de miembros */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Miembros del grupo
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700">Miembros</label>
                         {members.map((member) => (
                             <div key={member.email} className="flex items-center">
                                 <input
                                     type="checkbox"
-                                    id={`member-${member.email}`}
                                     checked={selectedMembers.includes(member.email)}
                                     onChange={() => handleMemberSelection(member.email)}
                                     className="mr-2"
                                 />
-                                <label htmlFor={`member-${member.email}`}>
-                                    {member.name} {member.surname} ({member.email})
-                                </label>
+                                <label>{member.name} {member.surname}</label>
                             </div>
                         ))}
                     </div>
 
-                    {/* Input: Nombre del gasto */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Nombre del Gasto
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700">Nombre</label>
                         <input
                             type="text"
                             value={expenseName}
                             onChange={(e) => setExpenseName(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                            className="w-full border border-gray-300 rounded-md p-2"
                         />
                     </div>
 
-                    {/* Input: Cantidad Total */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">
-                            Cantidad total
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700">Cantidad</label>
                         <input
                             type="number"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                            className="w-full border border-gray-300 rounded-md p-2"
                         />
                     </div>
 
@@ -222,8 +215,6 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         </select>
                     </div>
 
-                    {/*TODO: cambiar para que muestre los nombres aunque envíe los emails*/}
-                    {/* Inputs dinámicos: Según el método de compartición */}
                     {selectedMembers.length > 0 && shareMethod !== "PARTESIGUALES" && (
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700">
@@ -235,35 +226,33 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                                     <input
                                         type="number"
                                         value={shares[email] || ""}
-                                        onChange={(e) =>
-                                            handleShareChange(email, e.target.value)
-                                        }
+                                        onChange={(e) => handleShareChange(email, e.target.value)}
                                         className="w-1/2 border border-gray-300 rounded-md p-2"
                                     />
                                 </div>
                             ))}
                         </div>
                     )}
-                </form>
 
-                {/* Botones */}
-                <div className="flex justify-end gap-2 mt-4">
-                    <button
-                        onClick={onClose}
-                        className="bg-gray-300 px-4 py-2 rounded-md"
-                    >
-                        Cerrar
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md"
-                    >
-                        Enviar
-                    </button>
-                </div>
+                    <div className="flex justify-end gap-2 mt-4">
+                        <button
+                            onClick={onClose}
+                            className="bg-gray-300 px-4 py-2 rounded-md"
+                        >
+                            Cerrar
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleSubmit}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                        >
+                            Guardar
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
 };
 
-export default AddExpenseModal;
+export default EditExpenseModal;

@@ -47,7 +47,7 @@ export function Groups() {
             setIsModalOpen(false); // Cierra la modal después de crear el grupo
         } catch (err) {
             console.error("Error creating group:", err);
-            alert("Error creating group");
+
         }
     };
 

@@ -1,32 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import axiosInstance from './axiosInstance';
 
-function ExpenseCard({ expense, userId, groupId, onDelete }) {
+function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown, onDelete, onEdit }) {
     const { origin_user, amount, group, expense_name, id } = expense;
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
-
-    const toggleDropdown = () => {
-        setIsDropdownOpen((prevState) => !prevState);
-    };
-
-    const handleClickOutside = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-            setIsDropdownOpen(false);
-        }
-    };
-
-    useEffect(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
 
     const handleDelete = async () => {
         try {
             await axiosInstance.delete(`/users/${userId}/groups/${groupId}/expenses/${id}`);
-            console.log(`Gasto ${id} eliminado con éxito`);
             onDelete(id); // Notificar al componente padre que se eliminó un gasto
         } catch (error) {
             console.error(`Error al eliminar el gasto ${id}:`, error);
@@ -46,20 +26,15 @@ function ExpenseCard({ expense, userId, groupId, onDelete }) {
                 <span className="font-bold uppercase">{origin_user.username}</span>{' '}
                 <span className="text-green-600 font-bold">
                     {amount}{' '}
-                    {group.currency === 'EURO'
-                        ? '€'
-                        : group.currency === 'DOLAR'
-                            ? '$'
-                            : group.currency}
+                    {group.currency === 'EURO' ? '€' : group.currency === 'DOLAR' ? '$' : group.currency}
                 </span>{' '}
                 <span className="font-bold uppercase">{expense_name}</span>
             </p>
 
-            {/* Botón tres puntos opciones con IDs únicos */}
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative">
                 <button
                     id={`dropdownMenuIconButton-${id}`}
-                    onClick={toggleDropdown}
+                    onClick={() => toggleDropdown(id)} // Alternar el estado del dropdown
                     className="inline-flex self-center items-center p-2 text-sm font-medium text-center text-gray-900 rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-50"
                     type="button"
                 >
@@ -78,17 +53,16 @@ function ExpenseCard({ expense, userId, groupId, onDelete }) {
                     </svg>
                 </button>
 
-                {/* Menú desplegable */}
                 {isDropdownOpen && (
                     <div
                         id={`dropdownDots-${id}`}
-                        className="absolute right-0 mt-2 w-40 bg-gray-200 divide-y divide-gray-100 rounded-lg shadow"
+                        className="absolute right-0 mt-2 w-40 bg-gray-200 divide-y divide-gray-100 rounded-lg shadow z-50"
                     >
                         <ul className="py-2 text-sm text-gray-700" aria-labelledby={`dropdownMenuIconButton-${id}`}>
                             <li>
                                 <button
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 hover:text-black"
-                                    onClick={() => console.log(`Editar gasto ${id}`)}
+                                    onClick={() => onEdit(expense)} // Llamar a la función de edición
                                 >
                                     Editar
                                 </button>
