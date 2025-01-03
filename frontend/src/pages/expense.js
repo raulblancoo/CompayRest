@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 import ExpenseHeader from "../components/ExpenseHeader";
 import ExpenseUnderHeader from "../components/ExpenseUnderHeader";
 import ExpenseList from "../components/ExpenseList";
 import AddMemberModal from "../components/AddMemberModal";
 import BizumsModal from "../components/BizumsModal";
-import { useParams } from "react-router-dom";
+import {useParams} from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
-import { getUserIdFromToken } from "../components/AuthUtils";
+import {getUserIdFromToken} from "../components/AuthUtils";
 import AddExpenseModal from "../components/AddExpenseModal";
 import EditExpenseModal from "../components/EditExpenseModal"; // Modal para editar
 
 export function Expense() {
-    const { idGroup } = useParams();
+    const {idGroup} = useParams();
     const [group, setGroup] = useState(null);
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -128,18 +128,19 @@ export function Expense() {
             alert("Error al crear el gasto");
         }
     };
-      
-      const handleEditExpense = (updatedExpense) => {
+
+    const handleEditExpense = (updatedExpense) => {
         setExpenses((prev) =>
             prev.map((expense) => (expense.id === updatedExpense.id ? updatedExpense : expense))
         );
         setEditingExpense(null);
-};
+    };
+
     return (
         <>
             <div>
                 {/* Cabecera del grupo */}
-                {group && <ExpenseHeader group={group} />}
+                {group && <ExpenseHeader group={group}/>}
 
                 {/* Botones debajo de la cabecera */}
                 <ExpenseUnderHeader
@@ -185,7 +186,7 @@ export function Expense() {
                 isOpen={isExpenseModalOpen}
                 onClose={() => setExpenseModalOpen(false)}
                 groupId={idGroup}
-                onSubmit={(newExpense) => setExpenses((prev) => [...prev, newExpense])}
+                onSubmit={handleCreateExpense}
             />
 
             {editingExpense && (
