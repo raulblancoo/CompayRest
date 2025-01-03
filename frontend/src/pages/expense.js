@@ -1,22 +1,17 @@
-
 import React, { useState, useEffect } from "react";
-import ExpenseHeader from "../components/ExpenseHeader"; // Importamos el componente ExpenseHeader
+import ExpenseHeader from "../components/ExpenseHeader";
 import ExpenseUnderHeader from "../components/ExpenseUnderHeader";
 import ExpenseList from "../components/ExpenseList";
 import AddMemberModal from "../components/AddMemberModal";
-import BizumsModal from "../components/BizumsModal"; // Importa el componente modal de bizums
+import BizumsModal from "../components/BizumsModal";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
 import { getUserIdFromToken } from "../components/AuthUtils";
 import AddExpenseModal from "../components/AddExpenseModal";
 
-
-
 export function Expense() {
     const { idGroup } = useParams();
     const [group, setGroup] = useState(null); // Estado para guardar los datos del grupo
-
-
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -24,6 +19,8 @@ export function Expense() {
     const [isExpenseModalOpen, setExpenseModalOpen] = useState(false);
     const [isBizumsModalOpen, setBizumsModalOpen] = useState(false);
     const [bizums, setBizums] = useState([]);
+    const [members, setMembers] = useState([]); // Estado para los miembros del grupo
+    const [groupCurrency, setGroupCurrency] = useState(""); // Estado para la moneda del grupo
 
     const userId = getUserIdFromToken();
 
@@ -39,6 +36,7 @@ export function Expense() {
             try {
                 const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}`);
                 setGroup(response.data);
+                setGroupCurrency(response.data.currency); // Establecer la moneda del grupo
             } catch (error) {
                 console.error("Error al obtener los datos del grupo:", error);
                 setError("Error al obtener los datos del grupo");
@@ -77,6 +75,22 @@ export function Expense() {
         fetchExpenses();
     }, [idGroup, userId]);
 
+    // Fetch para obtener los miembros del grupo
+    useEffect(() => {
+        const fetchMembers = async () => {
+            try {
+                const response = await axiosInstance.get(
+                    `/users/${userId}/groups/${idGroup}/members`
+                );
+                setMembers(response.data);
+            } catch (error) {
+                console.error("Error al obtener los miembros del grupo:", error);
+            }
+        };
+
+        fetchMembers();
+    }, [idGroup, userId]);
+
     const fetchBizums = async () => {
         try {
             const response = await axiosInstance.get(
@@ -96,7 +110,6 @@ export function Expense() {
 
     const handleDeleteExpense = (expenseId) => {
         setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense.id !== expenseId));
-
     };
 
     const handleCreateExpense = async (newExpense) => {
@@ -120,16 +133,14 @@ export function Expense() {
 
     return (
         <>
-            <div >
+            <div>
                 {/* Cabecera del grupo */}
                 {group && <ExpenseHeader group={group} />}
-
 
                 {/* Botones debajo de la cabecera */}
                 <ExpenseUnderHeader
                     onAddMember={() => setModalOpen(true)}
                     onShowDebts={fetchBizums}
-
                 />
 
                 {loading && <p className="text-center">Loading...</p>}
@@ -140,14 +151,12 @@ export function Expense() {
                     </p>
                 )}
                 {!loading && !error && expenses.length > 0 && (
-
                     <ExpenseList
                         expenses={expenses}
                         userId={userId}
                         groupId={idGroup}
                         onDeleteExpense={handleDeleteExpense}
                     />
-
                 )}
 
                 <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2">
@@ -164,6 +173,7 @@ export function Expense() {
                 <AddMemberModal
                     idGroup={idGroup}
                     onClose={() => setModalOpen(false)}
+                    groupMembers={members}
                 />
             )}
 
@@ -178,6 +188,8 @@ export function Expense() {
                 isOpen={isBizumsModalOpen}
                 onClose={() => setBizumsModalOpen(false)}
                 bizums={bizums}
+                members={members}
+                currency={groupCurrency}
             />
         </>
     );
