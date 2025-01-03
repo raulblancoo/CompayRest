@@ -61,37 +61,47 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         const totalAmount = parseFloat(amount);
         const newErrors = {};
 
+        // Validar nombre del gasto
         if (!expenseName || expenseName.length > 30) {
             newErrors.expenseName = "El nombre del gasto no puede tener más de 30 caracteres.";
         }
 
+        // Validar cantidad positiva
         if (isNaN(totalAmount) || totalAmount <= 0) {
             newErrors.amount = "La cantidad del pago debe ser positiva.";
         }
 
-        if (shareMethod === "PARTESDESIGUALES") {
+        // Calcular y validar shares
+        let finalShares = {};
+        if (shareMethod === "PARTESIGUALES") {
+            const equalShare = totalAmount / selectedMembers.length;
+            finalShares = selectedMembers.reduce((acc, email) => {
+                acc[email] = parseFloat(equalShare.toFixed(2));
+                return acc;
+            }, {});
+        } else if (shareMethod === "PARTESDESIGUALES") {
             const totalShares = Object.values(shares).reduce((sum, share) => sum + share, 0);
             if (totalShares !== totalAmount) {
                 newErrors.shares = "La suma de la distribución debe coincidir con la cantidad total.";
+            } else {
+                finalShares = { ...shares };
             }
         } else if (shareMethod === "PORCENTAJES") {
             const totalPercentage = Object.values(shares).reduce((sum, percentage) => sum + percentage, 0);
             if (totalPercentage !== 100) {
                 newErrors.shares = "La suma de los porcentajes debe ser igual a 100.";
+            } else {
+                finalShares = selectedMembers.reduce((acc, email) => {
+                    acc[email] = parseFloat(((totalAmount * shares[email]) / 100).toFixed(2));
+                    return acc;
+                }, {});
             }
         }
 
+        // Si hay errores, detener envío
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
-        }
-
-        let finalShares = { ...shares };
-        if (shareMethod === "PORCENTAJES") {
-            finalShares = Object.keys(shares).reduce((acc, email) => {
-                acc[email] = (totalAmount * shares[email]) / 100;
-                return acc;
-            }, {});
         }
 
         const data = {
@@ -221,7 +231,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                        className="bg-sky-500 hover:bg-cyan-700 text-white px-4 py-2 rounded-md"
                     >
                         Enviar
                     </button>
