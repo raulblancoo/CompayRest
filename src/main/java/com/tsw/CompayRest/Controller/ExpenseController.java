@@ -106,16 +106,16 @@ public class ExpenseController {
 
             ExpenseDto savedExpense = expenseService.saveExpense(expenseToUpdate);
 
-             expenseShareService.deleteAll(expenseId);
+            expenseShareService.deleteAll(expenseId);
 
             for (ExpenseShareDto expense : updatedExpense.getShares()) {
                 expenseShareService.save(savedExpense.getId(), String.valueOf(expense.getDestiny_user().getEmail()), expense.getAssignedAmount());
             }
 
-            return ResponseEntity.ok(savedExpense);  // HTTP 200 OK
+            return ResponseEntity.ok(savedExpense);
         }
 
-        return ResponseEntity.notFound().build();  // HTTP 404
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{expenseId}")

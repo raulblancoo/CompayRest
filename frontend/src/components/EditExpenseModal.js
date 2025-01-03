@@ -8,7 +8,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
     const [expenseName, setExpenseName] = useState("");
     const [amount, setAmount] = useState("");
     const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
-    const [shares, setShares] = useState([]);
+    const [shares, setShares] = useState({});
 
     useEffect(() => {
         if (!expense || !expense.id || !groupId) return;
@@ -20,9 +20,14 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                     `/users/${expense.origin_user.id}/groups/${groupId}/expenses/${expense.id}`
                 );
 
+                // Extract emails and shares
+                const fetchedShares = expenseResponse.data.shares.reduce((acc, share) => {
+                    acc[share.destiny_user.email] = share.assignedAmount || 0;
+                    return acc;
+                }, {});
 
-                // Extract emails from shares
-                const emails = expenseResponse.data.shares.map(share => share.destiny_user.email);
+                setShares(fetchedShares);
+                const emails = Object.keys(fetchedShares);
                 setSelectedMembers(emails);
 
                 // Fetch group members
@@ -31,7 +36,6 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                 );
                 setMembers(membersResponse.data);
 
-                // Set initial values
                 setSelectedPayer(expense.origin_user.id || "");
                 setExpenseName(expense.expense_name || "");
                 setAmount(expense.amount || "");
@@ -52,14 +56,75 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
         );
     };
 
+    const calculateShares = () => {
+        const totalAmount = parseFloat(amount);
+        if (isNaN(totalAmount) || totalAmount <= 0) return;
+
+        const selectedCount = selectedMembers.length;
+
+        if (shareMethod === "PARTESIGUALES" && selectedCount > 0) {
+            const equalShare = totalAmount / selectedCount;
+            setShares(
+                selectedMembers.reduce((acc, email) => {
+                    acc[email] = equalShare;
+                    return acc;
+                }, {})
+            );
+        } else if (shareMethod === "PARTESDESIGUALES") {
+            setShares(
+                selectedMembers.reduce((acc, email) => {
+                    acc[email] = shares[email] || 0;
+                    return acc;
+                }, {})
+            );
+        } else if (shareMethod === "PORCENTAJES") {
+            const totalPercentage = selectedMembers.reduce((sum, email) => {
+                return sum + (shares[email] || 0);
+            }, 0);
+
+            if (totalPercentage !== 100) {
+                console.error("La suma de los porcentajes debe ser igual a 100.");
+                return;
+            }
+
+            setShares(
+                selectedMembers.reduce((acc, email) => {
+                    const percentage = shares[email] || 0;
+                    acc[email] = (totalAmount * percentage) / 100;
+                    return acc;
+                }, {})
+            );
+        }
+    };
+
+    useEffect(() => {
+        calculateShares();
+    }, [shareMethod, amount, selectedMembers]);
+
+    const handleShareChange = (email, value) => {
+        setShares((prev) => ({
+            ...prev,
+            [email]: parseFloat(value),
+        }));
+    };
+
     const handleSubmit = async () => {
+        const totalAmount = parseFloat(amount);
+
+        if (isNaN(totalAmount) || totalAmount <= 0) return;
+        if (!selectedPayer) return;
+        if (selectedMembers.length === 0) return;
+
         const updatedExpense = {
             ...expense,
-            amount: parseFloat(amount),
+            amount: totalAmount,
             expense_name: expenseName,
             share_method: shareMethod,
             origin_user: { id: selectedPayer },
-            shares: selectedMembers.map(email => ({ destiny_user: { email } })), // Map emails back to shares structure
+            shares: selectedMembers.map(email => ({
+                destiny_user: { email },
+                assignedAmount: shares[email] || 0,
+            })),
             group: { id: groupId },
             expense_date: new Date().toISOString(),
         };
@@ -73,7 +138,6 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
             onClose();
         } catch (error) {
             console.error("Error al actualizar el gasto:", error);
-
         }
     };
 
@@ -84,7 +148,6 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
             <div className="bg-white rounded-lg shadow-lg w-96 p-6">
                 <h2 className="text-xl font-semibold mb-4">Editar Gasto</h2>
                 <form>
-                    {/* Pagador */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Pagador</label>
                         <select
@@ -101,7 +164,6 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                         </select>
                     </div>
 
-                    {/* Miembros */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Miembros</label>
                         {members.map((member) => (
@@ -117,7 +179,6 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                         ))}
                     </div>
 
-                    {/* Nombre del gasto */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Nombre</label>
                         <input
@@ -128,7 +189,6 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                         />
                     </div>
 
-                    {/* Cantidad */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Cantidad</label>
                         <input
@@ -139,7 +199,41 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                         />
                     </div>
 
-                    {/* Botones */}
+                    {/* Selector: Método de Compartición */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700">
+                            Método de División
+                        </label>
+                        <select
+                            value={shareMethod}
+                            onChange={(e) => setShareMethod(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                        >
+                            <option value="PARTESIGUALES">Partes Iguales</option>
+                            <option value="PARTESDESIGUALES">Partes Desiguales</option>
+                            <option value="PORCENTAJES">Porcentajes</option>
+                        </select>
+                    </div>
+
+                    {selectedMembers.length > 0 && shareMethod !== "PARTESIGUALES" && (
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">
+                                {shareMethod === "PARTESDESIGUALES" ? "Distribución" : "Porcentajes"}
+                            </label>
+                            {selectedMembers.map((email) => (
+                                <div key={email} className="flex items-center gap-2 mt-2">
+                                    <span className="w-1/2">{email}</span>
+                                    <input
+                                        type="number"
+                                        value={shares[email] || ""}
+                                        onChange={(e) => handleShareChange(email, e.target.value)}
+                                        className="w-1/2 border border-gray-300 rounded-md p-2"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="flex justify-end gap-2 mt-4">
                         <button
                             onClick={onClose}
