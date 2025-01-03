@@ -1,7 +1,6 @@
 package com.tsw.CompayRest.Service.Impl;
 
 import com.tsw.CompayRest.Dto.BizumDto;
-import com.tsw.CompayRest.Dto.ExpenseDto;
 import com.tsw.CompayRest.Dto.UserDto;
 import com.tsw.CompayRest.Service.BizumService;
 import com.tsw.CompayRest.Service.ExpenseService;
@@ -11,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class BizumServiceImpl implements BizumService {
@@ -25,64 +26,61 @@ public class BizumServiceImpl implements BizumService {
 
     @Override
     public List<BizumDto> findBizumsByGroupId(Long groupId) {
-        // Calcula balances directamente y evita asignaciones innecesarias
-        Map<UserDto, Double> balanceMap = calculateBalances(groupId);
+        // Calcula balances y organiza usuarios según deudas y créditos
+        Map<UserDto, Double> balances = calculateBalances(groupId);
 
-        PriorityQueue<Map.Entry<UserDto, Double>> maxHeap = new PriorityQueue<>(
-                Comparator.<Map.Entry<UserDto, Double>>comparingDouble(Map.Entry::getValue).reversed()
-        );
-        PriorityQueue<Map.Entry<UserDto, Double>> minHeap = new PriorityQueue<>(
-                Comparator.comparingDouble(Map.Entry::getValue)
-        );
-
-        // Poblar heaps, filtrar y procesar en un solo paso
-        balanceMap.entrySet().stream().forEach(entry -> {
-            if (entry.getValue() > 0) maxHeap.add(entry);
-            else if (entry.getValue() < 0) minHeap.add(entry);
-        });
+        // Filtrar usuarios con deudas (negativo) y créditos (positivo)
+        List<Map.Entry<UserDto, Double>> debtors = balances.entrySet().stream()
+                .filter(entry -> entry.getValue() < 0)
+                .collect(Collectors.toList());
+        List<Map.Entry<UserDto, Double>> creditors = balances.entrySet().stream()
+                .filter(entry -> entry.getValue() > 0)
+                .collect(Collectors.toList());
 
         List<BizumDto> bizumsTransactions = new ArrayList<>();
 
-        while (!minHeap.isEmpty() && !maxHeap.isEmpty()) {
-            Map.Entry<UserDto, Double> debtor = minHeap.poll();
-            Map.Entry<UserDto, Double> creditor = maxHeap.poll();
+        // Resolver las deudas
+        for (Map.Entry<UserDto, Double> debtor : debtors) {
+            double debt = -debtor.getValue();
 
-            double amount = Math.min(-debtor.getValue(), creditor.getValue());
-            BigDecimal bdAmount = BigDecimal.valueOf(amount).setScale(2, RoundingMode.HALF_UP);
-            amount = bdAmount.doubleValue();
+            for (Iterator<Map.Entry<UserDto, Double>> it = creditors.iterator(); it.hasNext() && debt > 0; ) {
+                Map.Entry<UserDto, Double> creditor = it.next();
+                double credit = creditor.getValue();
 
-            bizumsTransactions.add(new BizumDto(debtor.getKey(), creditor.getKey(), amount));
+                double amount = Math.min(debt, credit);
+                BigDecimal roundedAmount = BigDecimal.valueOf(amount).setScale(2, RoundingMode.HALF_UP);
 
-            // Actualizar valores en lugar de reinserciones costosas
-            debtor.setValue(debtor.getValue() + amount);
-            creditor.setValue(creditor.getValue() - amount);
+                // Agregar transacción Bizum
+                bizumsTransactions.add(new BizumDto(creditor.getKey(), debtor.getKey(), roundedAmount.doubleValue()));
 
-            if (debtor.getValue() < 0) minHeap.add(debtor);
-            if (creditor.getValue() > 0) maxHeap.add(creditor);
+                // Actualizar las deudas y créditos
+                debt -= amount;
+                creditor.setValue(credit - amount);
+
+                // Eliminar al acreedor si su crédito se agotó
+                if (creditor.getValue() <= 0) it.remove();
+            }
+
+            // Detener si el deudor queda saldado
+            if (debt <= 0) {
+                debtor.setValue(0.0);
+            }
         }
 
         return bizumsTransactions;
     }
 
     private Map<UserDto, Double> calculateBalances(Long groupId) {
-        Map<UserDto, Double> balances = new HashMap<>();
-
-        List<ExpenseDto> expenses = expenseService.getAllExpensesByGroupId(groupId);
-
-        // Procesar gastos y participaciones directamente
-        expenses.forEach(expense -> {
-            UserDto loaner = expense.getOrigin_user();
-            expenseShareService.getExpenseShareByExpenseId(expense.getId()).forEach(share -> {
-                UserDto payer = share.getDestiny_user();
-
-                if (!loaner.equals(payer)) {
-                    // Actualizar balances directamente
-                    balances.merge(loaner, share.getAssignedAmount(), Double::sum);
-                    balances.merge(payer, -share.getAssignedAmount(), Double::sum);
-                }
-            });
-        });
-
-        return balances;
+        // Calcular balances de todos los usuarios en el grupo
+        return expenseService.getAllExpensesByGroupId(groupId).stream()
+                .flatMap(expense -> expenseShareService.getExpenseShareByExpenseId(expense.getId()).stream()
+                        .flatMap(share -> Stream.of(
+                                new AbstractMap.SimpleEntry<>(expense.getOrigin_user(), share.getAssignedAmount()),
+                                new AbstractMap.SimpleEntry<>(share.getDestiny_user(), -share.getAssignedAmount())
+                        )))
+                .collect(Collectors.groupingBy(
+                        AbstractMap.SimpleEntry::getKey,
+                        Collectors.summingDouble(AbstractMap.SimpleEntry::getValue)
+                ));
     }
 }
