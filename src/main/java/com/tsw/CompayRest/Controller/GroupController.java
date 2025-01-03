@@ -68,26 +68,4 @@ public class GroupController {
 
         return ResponseEntity.status(201).body(savedGroup); // HTTP 201
     }
-
-    // TODO: hacer método update (nuevo DTO?)
-
-
-    // TODO: no hace lo que tiene que hacer
-    @DeleteMapping("/{groupId}")
-    public ResponseEntity<Void> deleteGroup(@PathVariable("userId") Long userId, @PathVariable("groupId") Long groupId) {
-
-        Optional<UserDto> user = userService.getUserById(userId);
-        if (user.isEmpty()) {
-            return ResponseEntity.notFound().build(); // HTTP 404
-        }
-
-        // Intentar eliminarnos como miembro del grupo
-        try {
-            groupMemberService.deleteGroupMember(groupId, user.get());
-            return ResponseEntity.noContent().build(); // HTTP 204
-        } catch (Exception e) {
-            // Si ocurre un error al borrar nos, retornar un error interno.
-            return ResponseEntity.status(500).build(); // HTTP 500
-        }
-    }
 }
