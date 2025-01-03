@@ -1,21 +1,20 @@
 package com.tsw.CompayRest.Controller;
 
-import com.tsw.CompayRest.Dto.ExpenseDto;
-import com.tsw.CompayRest.Dto.GroupDto;
-import com.tsw.CompayRest.Dto.NewExpenseDto;
-import com.tsw.CompayRest.Dto.UserDto;
+import com.tsw.CompayRest.Dto.*;
+import com.tsw.CompayRest.Mapper.ExpenseMapperImpl;
+import com.tsw.CompayRest.Model.ExpenseModel;
 import com.tsw.CompayRest.Service.ExpenseService;
 import com.tsw.CompayRest.Service.ExpenseShareService;
 import com.tsw.CompayRest.Service.GroupService;
 import com.tsw.CompayRest.Service.UserService;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users/{userId}/groups/{groupId}/expenses")
@@ -24,12 +23,14 @@ public class ExpenseController {
     private final GroupService groupService;
     private final UserService userService;
     private final ExpenseShareService expenseShareService;
+    private final ExpenseMapperImpl expenseMapperImpl;
 
-    public ExpenseController(ExpenseService expenseService, GroupService groupService, UserService userService, ExpenseShareService expenseShareService) {
+    public ExpenseController(ExpenseService expenseService, GroupService groupService, UserService userService, ExpenseShareService expenseShareService, ExpenseMapperImpl expenseMapperImpl) {
         this.expenseService = expenseService;
         this.groupService = groupService;
         this.userService = userService;
         this.expenseShareService = expenseShareService;
+        this.expenseMapperImpl = expenseMapperImpl;
     }
 
     @GetMapping
@@ -46,9 +47,17 @@ public class ExpenseController {
 
     @GetMapping("/{expenseId}")
     public ResponseEntity<ExpenseDto> getExpenseById(@PathVariable("expenseId") Long expenseId) {
-        return expenseService.getExpenseById(expenseId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Optional<ExpenseDto> expense = expenseService.getExpenseById(expenseId);
+
+        if (expense.isPresent()) {
+            ExpenseDto expenseDto = expense.get(); // Extraer el objeto del Optional
+
+            expenseDto.setShares(expenseShareService.getExpenseShareByExpenseId(expenseId));
+
+            return ResponseEntity.ok(expenseDto);
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping
@@ -92,15 +101,21 @@ public class ExpenseController {
             expenseToUpdate.setAmount(updatedExpense.getAmount());
             expenseToUpdate.setExpense_date(updatedExpense.getExpense_date());
             expenseToUpdate.setShare_method(updatedExpense.getShare_method());
-            expenseToUpdate.setOrigin_user(updatedExpense.getOrigin_user());
-            expenseToUpdate.setGroup(updatedExpense.getGroup());
+            expenseToUpdate.setOrigin_user(userService.getUserById(updatedExpense.getOrigin_user().getId()).orElseThrow());
+            expenseToUpdate.setGroup(groupService.getGroupById(updatedExpense.getGroup().getId()).orElseThrow());
 
             ExpenseDto savedExpense = expenseService.saveExpense(expenseToUpdate);
 
-            return ResponseEntity.ok(savedExpense);  // HTTP 200 OK
+            expenseShareService.deleteAll(expenseId);
+
+            for (ExpenseShareDto expense : updatedExpense.getShares()) {
+                expenseShareService.save(savedExpense.getId(), String.valueOf(expense.getDestiny_user().getEmail()), expense.getAssignedAmount());
+            }
+
+            return ResponseEntity.ok(savedExpense);
         }
 
-        return ResponseEntity.notFound().build();  // HTTP 404
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{expenseId}")

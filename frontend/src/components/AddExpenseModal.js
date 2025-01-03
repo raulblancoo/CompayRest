@@ -123,6 +123,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         onClose();
     };
 
+
     if (!isOpen) return null;
 
     return (

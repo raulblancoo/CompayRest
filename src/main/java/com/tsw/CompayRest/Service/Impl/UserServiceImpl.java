@@ -56,6 +56,7 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(user);
     }
 
+
     @Override
     public UserDto saveUser(UserDto userDto){
         userRepository.save(userMapper.toNewEntity(userDto, passwordEncoder.encode(userDto.getPassword())));

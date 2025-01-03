@@ -37,7 +37,7 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers }) => {
 
     const handleSubmit = async () => {
         try {
-            await axiosInstance.post(`/users/${userId}/groups/${idGroup}/members/email`, emails);
+            const response = await axiosInstance.post(`/users/${userId}/groups/${idGroup}/members/email`, emails);
             onClose();
         } catch (error) {
             console.error(error);

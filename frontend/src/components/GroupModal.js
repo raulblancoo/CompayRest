@@ -25,7 +25,6 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
             userEmails: emails,
         };
 
-        console.log("Data enviada:", data);
         onSubmit(data);
         handleClose();
     };
