@@ -1,20 +1,16 @@
 package com.tsw.CompayRest.Controller;
 
 import com.tsw.CompayRest.Dto.*;
-import com.tsw.CompayRest.Mapper.ExpenseMapperImpl;
-import com.tsw.CompayRest.Model.ExpenseModel;
 import com.tsw.CompayRest.Service.ExpenseService;
 import com.tsw.CompayRest.Service.ExpenseShareService;
 import com.tsw.CompayRest.Service.GroupService;
 import com.tsw.CompayRest.Service.UserService;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users/{userId}/groups/{groupId}/expenses")
@@ -23,14 +19,12 @@ public class ExpenseController {
     private final GroupService groupService;
     private final UserService userService;
     private final ExpenseShareService expenseShareService;
-    private final ExpenseMapperImpl expenseMapperImpl;
 
-    public ExpenseController(ExpenseService expenseService, GroupService groupService, UserService userService, ExpenseShareService expenseShareService, ExpenseMapperImpl expenseMapperImpl) {
+    public ExpenseController(ExpenseService expenseService, GroupService groupService, UserService userService, ExpenseShareService expenseShareService) {
         this.expenseService = expenseService;
         this.groupService = groupService;
         this.userService = userService;
         this.expenseShareService = expenseShareService;
-        this.expenseMapperImpl = expenseMapperImpl;
     }
 
     @GetMapping
