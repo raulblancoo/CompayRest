@@ -18,7 +18,8 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
         const paid = bizums
             .filter((bizum) => bizum.payer_user.id === member.id)
             .reduce((sum, bizum) => sum + bizum.amount, 0);
-        return { ...member, received, paid };
+        const net = received - paid;
+        return { ...member, received, paid, net };
     });
 
     // Filtrar bizums relacionados con el usuario logueado
@@ -35,11 +36,10 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl max-h-[80vh] overflow-y-auto">
-                <h2 className="text-xl font-bold mb-4 uppercase">Deudas del Grupo</h2>
-
-                {/* Primera sección: Tabla de balances */}
+            <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl max-h-[80vh] overflow-y-auto">
+                {/* Tabla de balances */}
                 <div className="mb-6">
+                    <h3 className="text-xl font-semibold mb-4 text-blue-600">Balances por Usuario</h3>
                     {balances.length > 0 ? (
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -47,24 +47,45 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                                 <th className="border-b-2 py-2 uppercase">Usuario</th>
                                 <th className="border-b-2 py-2 text-green-500 uppercase">Le deben</th>
                                 <th className="border-b-2 py-2 text-red-500 uppercase">Debe</th>
+                                <th className="border-b-2 py-2 text-gray-900 uppercase">Balance Neto</th>
                             </tr>
                             </thead>
-                            <tbody>
+                            <tbody className>
                             {balances.map((balance) => (
-                                <tr key={balance.id}>
-                                    <td className="py-2 flex items-center">
+                                <tr
+                                    key={balance.id}
+                                    className={
+                                        balance.net < 0
+                                            ? 'bg-red-100'
+                                            : balance.net > 0
+                                                ? 'bg-green-100'
+                                                : 'bg-gray-100'
+                                    }
+                                >
+                                    <td className="ml-1 py-2 flex items-center">
                                         <img
-                                            src={balance.avatarURL || "/default-profile.png"}
+                                            src={balance.avatarURL}
                                             alt={balance.name}
                                             className="w-8 h-8 rounded-full mr-2"
                                         />
                                         {balance.name} {balance.surname}
                                     </td>
-                                    <td className="py-2 text-green-500 font-bold">
+                                    <td className="py-2 text-gray-500 font-bold">
                                         {balance.received.toFixed(2)} {currencySymbol}
                                     </td>
-                                    <td className="py-2 text-red-500 font-bold">
+                                    <td className="py-2 text-gray-500 font-bold">
                                         {balance.paid.toFixed(2)} {currencySymbol}
+                                    </td>
+                                    <td
+                                        className={`py-2 font-bold ${
+                                            balance.net > 0
+                                                ? 'text-green-500'
+                                                : balance.net < 0
+                                                    ? 'text-red-500'
+                                                    : 'text-gray-500'
+                                        }`}
+                                    >
+                                        {balance.net.toFixed(2)} {currencySymbol}
                                     </td>
                                 </tr>
                             ))}
@@ -75,41 +96,57 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                     )}
                 </div>
 
-                {/* Segunda sección: Mis Bizums */}
+                {/* Mis Bizums */}
                 <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2">Mis Bizums</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-blue-600">Mis Bizums</h3>
                     {userDebts.length > 0 ? (
-                        userDebts.map((bizum, index) => (
-                            <p key={index} className="text-gray-700">
-                                {bizum.loan_user.id === currentUserId
-                                    ? `${bizum.payer_user.name} ${bizum.payer_user.surname} te debe ${bizum.amount.toFixed(2)} ${currencySymbol}.`
-                                    : `Debes ${bizum.amount.toFixed(2)} ${currencySymbol} a ${bizum.loan_user.name} ${bizum.loan_user.surname}.`}
-                            </p>
-                        ))
+                        <ul className="space-y-2">
+                            {userDebts.map((bizum, index) => (
+                                <li key={index} className="p-4 bg-gray-100 rounded-md">
+                                    {bizum.loan_user.id === currentUserId
+                                        ? <p><span
+                                            className="font-semibold">{bizum.payer_user.name} {bizum.payer_user.surname}</span> te
+                                            debe <span
+                                                className="text-green-600">{bizum.amount.toFixed(2)} {currencySymbol}</span>
+                                        </p>
+                                        : <p>Debes <span
+                                            className="text-red-600">{bizum.amount.toFixed(2)} {currencySymbol}</span> a <span
+                                            className="font-semibold">{bizum.loan_user.name} {bizum.loan_user.surname}</span>
+                                        </p>}
+                                </li>
+                            ))}
+                        </ul>
                     ) : (
                         <p className="text-gray-500 text-center">No tienes acciones pendientes.</p>
                     )}
                 </div>
 
-                {/* Tercera sección: Otras Bizums */}
+                {/* Otras Bizums */}
                 <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2">Otros Bizums</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-blue-600">Otros Bizums</h3>
                     {otherDebts.length > 0 ? (
-                        otherDebts.map((bizum, index) => (
-                            <p key={index} className="text-gray-700">
-                                {bizum.payer_user.name} {bizum.payer_user.surname} le debe {bizum.amount.toFixed(2)} {currencySymbol} a {bizum.loan_user.name} {bizum.loan_user.surname}.
-                            </p>
-                        ))
+                        <ul className="space-y-2">
+                            {otherDebts.map((bizum, index) => (
+                                <li key={index} className="p-4 bg-gray-100 rounded-md">
+                                    <p><span
+                                        className="font-semibold">{bizum.payer_user.name} {bizum.payer_user.surname}</span> le
+                                        debe <span
+                                            className="text-red-600">{bizum.amount.toFixed(2)} {currencySymbol}</span> a <span
+                                            className="font-semibold">{bizum.loan_user.name} {bizum.loan_user.surname}</span>
+                                    </p>
+                                </li>
+                            ))}
+                        </ul>
                     ) : (
                         <p className="text-gray-500 text-center">No hay más acciones pendientes.</p>
                     )}
                 </div>
 
                 {/* Botón Cerrar */}
-                <div className="flex justify-end">
+                <div className="flex justify-center">
                     <button
                         onClick={onClose}
-                        className="bg-sky-500 hover:bg-cyan-700 text-white px-4 py-2 rounded-md"
+                        className="px-4 py-2 text-sm font-medium text-white bg-sky-500 hover:bg-cyan-700 rounded-lg"
                     >
                         Cerrar
                     </button>
