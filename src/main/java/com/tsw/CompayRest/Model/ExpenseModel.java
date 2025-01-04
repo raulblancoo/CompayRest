@@ -4,8 +4,7 @@ import com.tsw.CompayRest.Enum.ShareMethod;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-import java.util.Set;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,9 +24,9 @@ public class ExpenseModel {
     @Column(name = "expense_name")
     private String expense_name;
 
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "expense_date")
-    private LocalDate expense_date;
+    private LocalDateTime expense_date;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "origin_user")

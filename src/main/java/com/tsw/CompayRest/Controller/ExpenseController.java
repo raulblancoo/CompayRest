@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -62,7 +62,7 @@ public class ExpenseController {
         if(group.isPresent() && user.isPresent()) {
             ExpenseDto expenseDto = new ExpenseDto();
             expenseDto.setExpense_name(expense.getExpense_name());
-            expenseDto.setExpense_date(LocalDate.now());
+            expenseDto.setExpense_date(LocalDateTime.now());
             expenseDto.setAmount(expense.getAmount());
             expenseDto.setShare_method(expense.getShare_method());
             expenseDto.setOrigin_user(user.get());
