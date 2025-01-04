@@ -2,17 +2,10 @@ import React, { useState, useEffect } from 'react';
 import ExpenseCard from './ExpenseCard';
 import ExpenseDate from './ExpenseDate';
 
-function ExpenseList({ expenses, userId, groupId, onEditExpense }) {
-    const [expenseList, setExpenseList] = useState(expenses);
+function ExpenseList({ expenses, userId, groupId, onEditExpense, onDeleteExpense }) {
     const [openDropdownId, setOpenDropdownId] = useState(null); // Estado para manejar qué dropdown está abierto
 
-    const handleDeleteExpense = (expenseId) => {
-        // Actualizar la lista de gastos eliminando el gasto con el ID especificado
-        setExpenseList((prevExpenses) => prevExpenses.filter((expense) => expense.id !== expenseId));
-    };
-
     const toggleDropdown = (id) => {
-        // Abrir o cerrar el dropdown según su estado actual
         setOpenDropdownId((prevId) => (prevId === id ? null : id));
     };
 
@@ -32,7 +25,7 @@ function ExpenseList({ expenses, userId, groupId, onEditExpense }) {
     return (
         <div className="max-w-6xl mx-auto">
             <div className="container mx-auto px-6 pb-32">
-                {expenseList.map((expense, index) => (
+                {expenses.map((expense, index) => (
                     <div key={expense.id}>
                         {/* Mostrar la fecha solo si es diferente a la anterior */}
                         {(index === 0 || new Date(expense.expense_date).toDateString() !== new Date(expenses[index - 1].expense_date).toDateString()) && (
@@ -46,8 +39,8 @@ function ExpenseList({ expenses, userId, groupId, onEditExpense }) {
                             groupId={groupId}
                             isDropdownOpen={openDropdownId === expense.id} // Verificar si este dropdown está abierto
                             toggleDropdown={toggleDropdown} // Pasar función para manejar el estado
-                            onDelete={handleDeleteExpense}
-                            onEdit={(expense) => onEditExpense(expense)} // Pasar función para manejar edición
+                            onDelete={onDeleteExpense} // Pasar la función del padre
+                            onEdit={onEditExpense} // Pasar función para manejar edición
                         />
                     </div>
                 ))}

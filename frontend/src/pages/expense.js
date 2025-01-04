@@ -1,17 +1,17 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import ExpenseHeader from "../components/ExpenseHeader";
 import ExpenseUnderHeader from "../components/ExpenseUnderHeader";
 import ExpenseList from "../components/ExpenseList";
 import AddMemberModal from "../components/AddMemberModal";
 import BizumsModal from "../components/BizumsModal";
-import {useParams} from "react-router-dom";
+import { useParams } from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
-import {getUserIdFromToken} from "../components/AuthUtils";
+import { getUserIdFromToken } from "../components/AuthUtils";
 import AddExpenseModal from "../components/AddExpenseModal";
 import EditExpenseModal from "../components/EditExpenseModal"; // Modal para editar
 
 export function Expense() {
-    const {idGroup} = useParams();
+    const { idGroup } = useParams();
     const [group, setGroup] = useState(null);
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -121,7 +121,8 @@ export function Expense() {
                 `/users/${userId}/groups/${idGroup}/expenses`,
                 newExpense
             );
-            setExpenses((prev) => [...prev, response.data]);
+            console.log("Nuevo gasto creado:", response.data);
+            setExpenses((prev) => [...prev, response.data]); // Actualiza el estado de manera inmutable
             setExpenseModalOpen(false);
         } catch (error) {
             console.error("Error creando el gasto:", error);
@@ -140,7 +141,7 @@ export function Expense() {
         <>
             <div>
                 {/* Cabecera del grupo */}
-                {group && <ExpenseHeader group={group}/>}
+                {group && <ExpenseHeader group={group} />}
 
                 {/* Botones debajo de la cabecera */}
                 <ExpenseUnderHeader
@@ -160,7 +161,8 @@ export function Expense() {
                         expenses={expenses}
                         userId={userId}
                         groupId={idGroup}
-                        onEditExpense={(expense) => setEditingExpense(expense)} // Pasar función al componente
+                        onEditExpense={(expense) => setEditingExpense(expense)} // Pasar función para editar
+                        onDeleteExpense={handleDeleteExpense} // Pasar función para eliminar
                     />
                 )}
 
@@ -203,7 +205,6 @@ export function Expense() {
                         );
                     }}
                 />
-
             )}
 
             <BizumsModal
