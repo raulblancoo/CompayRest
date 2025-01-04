@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axiosInstance from "../components/axiosInstance";
 import { getUserIdFromToken } from "./AuthUtils";
 
-const AddMemberModal = ({ onClose, idGroup, groupMembers }) => {
+const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
     const [emails, setEmails] = useState([]);
     const [currentEmail, setCurrentEmail] = useState('');
     const [members, setMembers] = useState(groupMembers || []);
@@ -38,9 +38,11 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers }) => {
     const handleSubmit = async () => {
         try {
             const response = await axiosInstance.post(`/users/${userId}/groups/${idGroup}/members/email`, emails);
-            onClose();
+            onMembersAdded(); // Notificar al padre que se han añadido miembros
+            onClose(); // Cerrar el modal
         } catch (error) {
-            console.error(error);
+            console.error("Error al añadir miembros:", error);
+            alert("Error al añadir miembros. Por favor, verifica los correos e inténtalo de nuevo.");
         }
     };
 

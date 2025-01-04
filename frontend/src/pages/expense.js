@@ -137,6 +137,16 @@ export function Expense() {
         setEditingExpense(null);
     };
 
+    // Nueva función para actualizar los miembros después de añadir
+    const handleMembersAdded = async () => {
+        try {
+            const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/members`);
+            setMembers(response.data);
+        } catch (error) {
+            console.error("Error al actualizar los miembros del grupo:", error);
+        }
+    };
+
     return (
         <>
             <div>
@@ -181,6 +191,7 @@ export function Expense() {
                     idGroup={idGroup}
                     onClose={() => setModalOpen(false)}
                     groupMembers={members}
+                    onMembersAdded={handleMembersAdded} // Pasar la función de callback
                 />
             )}
 
