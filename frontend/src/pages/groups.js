@@ -67,7 +67,6 @@ export function Groups() {
                             <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2">
                                 <button
                                     onClick={handleOpenModal}
-                                    // className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700"
                                     className="p-2 flex justify-center items-center rounded-full bg-sky-500 text-white px-6 py-3 mx-5 -mb-4 hover:bg-cyan-700 focus:outline-none focus:bg-blue-500"
                                 >
                                     Crear Nuevo Grupo
