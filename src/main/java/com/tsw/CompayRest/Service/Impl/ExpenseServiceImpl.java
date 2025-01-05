@@ -45,8 +45,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public List<ExpenseDto> getAllExpensesByGroupId(Long groupId) {
-        // TODO: enviarlos ordenados por fecha para que en la vista salgan bien
-        return expenseMapper.toListDto(expenseRepository.findAllByGroupId(groupId));
+        return expenseMapper.toListDto(expenseRepository.findAllByGroupIdOrderByDate(groupId));
     }
 
     @Override

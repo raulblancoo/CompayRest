@@ -20,6 +20,8 @@ export function Expense() {
     const [isExpenseModalOpen, setExpenseModalOpen] = useState(false);
     const [isBizumsModalOpen, setBizumsModalOpen] = useState(false);
     const [bizums, setBizums] = useState([]);
+    const [members, setMembers] = useState([]); // Estado para los miembros del grupo
+    const [groupCurrency, setGroupCurrency] = useState(""); // Estado para la moneda del grupo
     const [editingExpense, setEditingExpense] = useState(null);
 
     const userId = getUserIdFromToken();
@@ -35,6 +37,7 @@ export function Expense() {
             try {
                 const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}`);
                 setGroup(response.data);
+                setGroupCurrency(response.data.currency); // Establecer la moneda del grupo
             } catch (error) {
                 console.error("Error al obtener los datos del grupo:", error);
                 setError("Error al obtener los datos del grupo");
@@ -70,6 +73,63 @@ export function Expense() {
         fetchExpenses();
     }, [idGroup, userId]);
 
+    // Fetch para obtener los miembros del grupo
+    useEffect(() => {
+        const fetchMembers = async () => {
+            try {
+                const response = await axiosInstance.get(
+                    `/users/${userId}/groups/${idGroup}/members`
+                );
+                setMembers(response.data);
+            } catch (error) {
+                console.error("Error al obtener los miembros del grupo:", error);
+            }
+        };
+
+        fetchMembers();
+    }, [idGroup, userId]);
+
+    const fetchBizums = async () => {
+        try {
+            const response = await axiosInstance.get(
+                `/users/${userId}/groups/${idGroup}/bizums`
+            );
+            if (response.status === 204) {
+                setBizums([]);
+            } else {
+                setBizums(response.data);
+            }
+            setBizumsModalOpen(true);
+        } catch (error) {
+            console.error("Error al obtener los bizums:", error);
+            alert("Error al cargar los bizums");
+        }
+    };
+
+    const handleDeleteExpense = (expenseId) => {
+        setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense.id !== expenseId));
+    };
+
+    const handleCreateExpense = async (newExpense) => {
+        if (!userId) {
+            alert("¡No hay usuario logueado!");
+            return;
+        }
+
+        try {
+            const response = await axiosInstance.post(
+                `/users/${userId}/groups/${idGroup}/expenses`,
+                newExpense
+            );
+            console.log("Nuevo gasto creado:", response.data);
+            setExpenses((prev) => [...prev, response.data]); // Actualiza el estado de manera inmutable
+            setExpenseModalOpen(false);
+        } catch (error) {
+            console.error("Error creando el gasto:", error);
+            alert("Error al crear el gasto");
+        }
+    };
+
     const handleEditExpense = (updatedExpense) => {
         setExpenses((prev) =>
             prev.map((expense) => (expense.id === updatedExpense.id ? updatedExpense : expense))
@@ -77,14 +137,26 @@ export function Expense() {
         setEditingExpense(null);
     };
 
+    // Nueva función para actualizar los miembros después de añadir
+    const handleMembersAdded = async () => {
+        try {
+            const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/members`);
+            setMembers(response.data);
+        } catch (error) {
+            console.error("Error al actualizar los miembros del grupo:", error);
+        }
+    };
+
     return (
         <>
             <div>
+                {/* Cabecera del grupo */}
                 {group && <ExpenseHeader group={group} />}
 
+                {/* Botones debajo de la cabecera */}
                 <ExpenseUnderHeader
                     onAddMember={() => setModalOpen(true)}
-                    onShowDebts={() => console.log("Show debts")}
+                    onShowDebts={fetchBizums}
                 />
 
                 {loading && <p className="text-center">Loading...</p>}
@@ -99,7 +171,8 @@ export function Expense() {
                         expenses={expenses}
                         userId={userId}
                         groupId={idGroup}
-                        onEditExpense={(expense) => setEditingExpense(expense)} // Pasar función al componente
+                        onEditExpense={(expense) => setEditingExpense(expense)} // Pasar función para editar
+                        onDeleteExpense={handleDeleteExpense} // Pasar función para eliminar
                     />
                 )}
 
@@ -117,6 +190,8 @@ export function Expense() {
                 <AddMemberModal
                     idGroup={idGroup}
                     onClose={() => setModalOpen(false)}
+                    groupMembers={members}
+                    onMembersAdded={handleMembersAdded} // Pasar la función de callback
                 />
             )}
 
@@ -124,7 +199,7 @@ export function Expense() {
                 isOpen={isExpenseModalOpen}
                 onClose={() => setExpenseModalOpen(false)}
                 groupId={idGroup}
-                onSubmit={(newExpense) => setExpenses((prev) => [...prev, newExpense])}
+                onSubmit={handleCreateExpense}
             />
 
             {editingExpense && (
@@ -141,13 +216,14 @@ export function Expense() {
                         );
                     }}
                 />
-
             )}
 
             <BizumsModal
                 isOpen={isBizumsModalOpen}
                 onClose={() => setBizumsModalOpen(false)}
                 bizums={bizums}
+                members={members}
+                currency={groupCurrency}
             />
         </>
     );

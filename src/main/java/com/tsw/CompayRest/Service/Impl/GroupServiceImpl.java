@@ -4,6 +4,7 @@ import com.tsw.CompayRest.Dto.GroupDto;
 import com.tsw.CompayRest.Dto.NewGroupDto;
 import com.tsw.CompayRest.Enum.Currency;
 import com.tsw.CompayRest.Mapper.GroupMapper;
+import com.tsw.CompayRest.Model.GroupModel;
 import com.tsw.CompayRest.Repository.GroupRepository;
 import com.tsw.CompayRest.Service.GroupService;
 import lombok.RequiredArgsConstructor;
@@ -70,10 +71,15 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     public void updateGroupAmount(Long groupId, double amount) {
-        groupRepository.findById(groupId).ifPresent(existingGroup -> {
-            existingGroup.setAmount(existingGroup.getAmount() + amount);
-            groupRepository.save(existingGroup);
-        });
+        Optional<GroupModel> group = groupRepository.findById(groupId);
+
+        if(group.isPresent()) {
+            System.out.println(amount);
+            System.out.println(group.get().getAmount());
+            group.get().setAmount(group.get().getAmount() + amount);
+            System.out.println(group.get().getAmount());
+            groupRepository.save(group.get());
+        }
     }
 
 

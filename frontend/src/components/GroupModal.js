@@ -72,6 +72,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                             <option value="EUR">Euro (€)</option>
                             <option value="USD">Dólar ($)</option>
                             <option value="GBP">Libra (£)</option>
+                            <option value="JPY">Yen Japonés (¥)</option>
                         </select>
                     </div>
 
