@@ -1,3 +1,4 @@
+// Login.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
@@ -14,6 +15,12 @@ export function Login() {
     const [formErrors, setFormErrors] = useState({});
     const navigate = useNavigate();
 
+    // Función para alternar entre Login y Registro y limpiar errores
+    const toggleForm = () => {
+        setIsLoginActive(!isLoginActive);
+        setFormErrors({}); // Limpia los errores al cambiar de formulario
+    };
+
     // Manejar cambios en los campos
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -25,10 +32,10 @@ export function Login() {
     const validateLogin = () => {
         const errors = {};
         if (!formValues.email.trim()) {
-            errors.email = "Email is required.";
+            errors.email = "El email es obligatorio.";
         }
         if (!formValues.password.trim()) {
-            errors.password = "Password is required.";
+            errors.password = "La contraseña es obligatoria.";
         }
         setFormErrors(errors);
         return Object.keys(errors).length === 0; // Retorna true si no hay errores
@@ -41,24 +48,24 @@ export function Login() {
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
 
         if (!formValues.name.trim()) {
-            errors.name = "First Name is required.";
+            errors.name = "El nombre es obligatorio.";
         }
         if (!formValues.surname.trim()) {
-            errors.surname = "Last Name is required.";
+            errors.surname = "El apellido es obligatorio.";
         }
         if (!formValues.username.trim()) {
-            errors.username = "Username is required.";
+            errors.username = "El nombre de usuario es obligatorio.";
         }
         if (!formValues.email.trim()) {
-            errors.email = "Email is required.";
+            errors.email = "El email es obligatorio.";
         } else if (!emailRegex.test(formValues.email)) {
-            errors.email = "Invalid email format.";
+            errors.email = "Formato de email inválido.";
         }
         if (!formValues.password.trim()) {
-            errors.password = "Password is required.";
+            errors.password = "La contraseña es obligatoria.";
         } else if (!passwordRegex.test(formValues.password)) {
             errors.password =
-                "Password must contain at least one uppercase letter, one lowercase letter, and one number.";
+                "La contraseña debe contener al menos una letra mayúscula, una letra minúscula y un número.";
         }
 
         setFormErrors(errors);
@@ -84,10 +91,22 @@ export function Login() {
                 const response = await axiosInstance.post("/register", formValues);
                 if (response.status === 200 || response.status === 201) {
                     setIsLoginActive(true); // Cambiar a login tras registro exitoso
+                    setFormErrors({}); // Opcional: limpiar errores después del registro exitoso
                 }
             }
         } catch (error) {
-            setFormErrors({ general: "An error occurred. Please retry." });
+            if (error.response && error.response.data) {
+                const { message } = error.response.data;
+
+                // Asignar errores específicos basados en el mensaje
+                if (message.toLowerCase().includes("email")) {
+                    setFormErrors({ email: message });
+                } else {
+                    setFormErrors({ general: message });
+                }
+            } else {
+                setFormErrors({ general: "Ocurrió un error. Por favor, inténtalo de nuevo." });
+            }
         }
     };
 
@@ -95,62 +114,52 @@ export function Login() {
         <div className="min-h-screen bg-gradient-to-r from-blue-500 to-blue-900 flex items-center justify-center">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
                 <h1 className="text-2xl font-bold text-center mb-2 text-blue-900">
-                    {isLoginActive ? "Welcome back!" : "Register"}
+                    {isLoginActive ? "¡Bienvenido de nuevo!" : "Registrar"}
                 </h1>
                 <form onSubmit={handleSubmit}>
                     {!isLoginActive && (
                         <>
                             <div className="mb-4">
                                 <label className="block text-blue-900 font-medium" htmlFor="name">
-                                    First Name
+                                    Nombre
                                 </label>
                                 <input
                                     className="w-full p-3 border border-blue-300 rounded mt-1"
                                     id="name"
                                     name="name"
-                                    placeholder="First Name"
+                                    placeholder="Nombre"
                                     value={formValues.name}
                                     onChange={handleChange}
                                 />
                                 {formErrors.name && <p className="text-red-500">{formErrors.name}</p>}
                             </div>
                             <div className="mb-4">
-                                <label
-                                    className="block text-blue-900 font-medium"
-                                    htmlFor="surname"
-                                >
-                                    Last Name
+                                <label className="block text-blue-900 font-medium" htmlFor="surname">
+                                    Apellido
                                 </label>
                                 <input
                                     className="w-full p-3 border border-blue-300 rounded mt-1"
                                     id="surname"
                                     name="surname"
-                                    placeholder="Last Name"
+                                    placeholder="Apellido"
                                     value={formValues.surname}
                                     onChange={handleChange}
                                 />
-                                {formErrors.surname && (
-                                    <p className="text-red-500">{formErrors.surname}</p>
-                                )}
+                                {formErrors.surname && <p className="text-red-500">{formErrors.surname}</p>}
                             </div>
                             <div className="mb-4">
-                                <label
-                                    className="block text-blue-900 font-medium"
-                                    htmlFor="username"
-                                >
-                                    Username
+                                <label className="block text-blue-900 font-medium" htmlFor="username">
+                                    Nombre de Usuario
                                 </label>
                                 <input
                                     className="w-full p-3 border border-blue-300 rounded mt-1"
                                     id="username"
                                     name="username"
-                                    placeholder="Username"
+                                    placeholder="Nombre de Usuario"
                                     value={formValues.username}
                                     onChange={handleChange}
                                 />
-                                {formErrors.username && (
-                                    <p className="text-red-500">{formErrors.username}</p>
-                                )}
+                                {formErrors.username && <p className="text-red-500">{formErrors.username}</p>}
                             </div>
                         </>
                     )}
@@ -170,13 +179,13 @@ export function Login() {
                     </div>
                     <div className="mb-4">
                         <label className="block text-blue-900 font-medium" htmlFor="password">
-                            Password
+                            Contraseña
                         </label>
                         <input
                             className="w-full p-3 border border-blue-300 rounded mt-1"
                             id="password"
                             name="password"
-                            placeholder="Password"
+                            placeholder="Contraseña"
                             type="password"
                             value={formValues.password}
                             onChange={handleChange}
@@ -189,19 +198,21 @@ export function Login() {
                         className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg font-semibold text-lg"
                         type="submit"
                     >
-                        {isLoginActive ? "Login" : "Register"}
+                        {isLoginActive ? "Iniciar Sesión" : "Registrar"}
                     </button>
                 </form>
-                {formErrors.general && <p className="text-red-500 text-center mt-4">{formErrors.general}</p>}
+                {formErrors.general && (
+                    <p className="text-red-500 text-center mt-4">{formErrors.general}</p>
+                )}
                 <p className="text-center text-blue-700 mt-6">
                     {isLoginActive
-                        ? "Not registered? "
-                        : "Already have an account? "}
+                        ? "¿No estás registrado?"
+                        : "¿Ya tienes una cuenta?"}{" "}
                     <button
                         className="text-blue-500 font-semibold"
-                        onClick={() => setIsLoginActive(!isLoginActive)}
+                        onClick={toggleForm} // Usar la función de alternancia
                     >
-                        {isLoginActive ? "Register here" : "Login here"}
+                        {isLoginActive ? "Regístrate aquí" : "Inicia sesión aquí"}
                     </button>
                 </p>
             </div>
