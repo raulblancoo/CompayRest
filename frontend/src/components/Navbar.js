@@ -2,18 +2,19 @@ import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "./axiosInstance";
 import { getUserIdFromToken } from "./AuthUtils";
+import { useTranslation } from "react-i18next";
 
 const Navbar = () => {
     const navigate = useNavigate();
+    const { i18n } = useTranslation();
     const [user, setUser] = useState({});
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Menú del usuario
-    const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false); // Menú de idiomas
-    const [selectedLanguage, setSelectedLanguage] = useState("es"); // Idioma seleccionado
-    const userDropdownRef = useRef(null); // Referencia al dropdown del usuario
-    const languageDropdownRef = useRef(null); // Referencia al dropdown de idiomas
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
+    const [selectedLanguage, setSelectedLanguage] = useState("es");
+    const userDropdownRef = useRef(null);
+    const languageDropdownRef = useRef(null);
 
     const handleLogout = () => {
-        // Eliminar el token y redirigir al login
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
         navigate("/login");
@@ -37,19 +38,12 @@ const Navbar = () => {
         getUser();
     }, []);
 
-    // Cierra los dropdowns si se hace clic fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (
-                userDropdownRef.current &&
-                !userDropdownRef.current.contains(event.target)
-            ) {
+            if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
                 setIsDropdownOpen(false);
             }
-            if (
-                languageDropdownRef.current &&
-                !languageDropdownRef.current.contains(event.target)
-            ) {
+            if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target)) {
                 setIsLanguageDropdownOpen(false);
             }
         };
@@ -62,27 +56,27 @@ const Navbar = () => {
 
     const toggleUserDropdown = () => {
         setIsDropdownOpen((prevState) => !prevState);
-        setIsLanguageDropdownOpen(false); // Cierra el menú de idiomas
+        setIsLanguageDropdownOpen(false);
     };
 
     const toggleLanguageDropdown = () => {
         setIsLanguageDropdownOpen((prevState) => !prevState);
-        setIsDropdownOpen(false); // Cierra el menú del usuario
+        setIsDropdownOpen(false);
     };
 
     const handleLanguageChange = (language) => {
+        i18n.changeLanguage(language);
+        localStorage.setItem("language", language);
         setSelectedLanguage(language);
-        setIsLanguageDropdownOpen(false); // Cierra el menú de idiomas
+        setIsLanguageDropdownOpen(false);
     };
 
     const languages = [
         { code: "es", label: "Español", flag: "https://cdn.icon-icons.com/icons2/1531/PNG/512/3253482-flag-spain-icon_106784.png" },
         { code: "en", label: "English (UK)", flag: "https://cdn.icon-icons.com/icons2/107/PNG/512/united_kingdom_flag_flags_18060.png" },
-        { code: "it", label: "Italiano", flag: "https://cdn.icon-icons.com/icons2/107/PNG/512/italy_18275.png" },
     ];
 
     const currentLanguage = languages.find((lang) => lang.code === selectedLanguage);
-
 
     return (
         <nav className="bg-white shadow">
@@ -143,9 +137,7 @@ const Navbar = () => {
                             </Link>
                         </div>
                     </div>
-
                     <div className="relative flex items-center space-x-4">
-                        {/* Dropdown de Idiomas */}
                         <div className="relative" ref={languageDropdownRef}>
                             <div
                                 className="flex items-center cursor-pointer"
@@ -178,8 +170,6 @@ const Navbar = () => {
                                 </div>
                             )}
                         </div>
-
-                        {/* Avatar y Menú del Usuario */}
                         <div className="relative" ref={userDropdownRef}>
                             <img
                                 className="w-9 h-9 rounded-full cursor-pointer"

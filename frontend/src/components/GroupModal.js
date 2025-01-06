@@ -1,10 +1,11 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const GroupModal = ({ isOpen, onClose, onSubmit }) => {
+    const { t } = useTranslation();
     const [groupName, setGroupName] = useState("");
     const [currency, setCurrency] = useState("EUR");
     const [emails, setEmails] = useState([]);
-
     const [emailInput, setEmailInput] = useState("");
 
     const handleAddEmail = () => {
@@ -34,7 +35,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
         setCurrency("EUR");
         setEmails([]);
         setEmailInput("");
-        onClose(); // Cierra la modal
+        onClose();
     };
 
     if (!isOpen) return null;
@@ -42,12 +43,11 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-96 p-6">
-                <h2 className="text-xl font-semibold mb-4">Crear Nuevo Grupo</h2>
+                <h2 className="text-xl font-semibold mb-4">{t("create_new_group")}</h2>
                 <form>
-                    {/* Input: Nombre del grupo */}
                     <div className="mb-4">
                         <label htmlFor="groupName" className="block text-sm font-medium text-gray-700">
-                            Nombre del Grupo
+                            {t("group_name")}
                         </label>
                         <input
                             type="text"
@@ -57,11 +57,9 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                             className="w-full border border-gray-300 rounded-md p-2 mt-1"
                         />
                     </div>
-
-                    {/* Select: Moneda */}
                     <div className="mb-4">
                         <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
-                            Moneda
+                            {t("currency")}
                         </label>
                         <select
                             id="currency"
@@ -69,17 +67,15 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                             onChange={(e) => setCurrency(e.target.value)}
                             className="w-full border border-gray-300 rounded-md p-2 mt-1"
                         >
-                            <option value="EUR">Euro (€)</option>
-                            <option value="USD">Dólar ($)</option>
-                            <option value="GBP">Libra (£)</option>
-                            <option value="JPY">Yen Japonés (¥)</option>
+                            <option value="EUR">{t("euro")}</option>
+                            <option value="USD">{t("dollar")}</option>
+                            <option value="GBP">{t("pound")}</option>
+                            <option value="JPY">{t("yen")}</option>
                         </select>
                     </div>
-
-                    {/* Input: Emails */}
                     <div className="mb-4">
                         <label htmlFor="emails" className="block text-sm font-medium text-gray-700">
-                            Correos Electrónicos
+                            {t("emails")}
                         </label>
                         <div className="flex">
                             <input
@@ -87,7 +83,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                                 id="emails"
                                 value={emailInput}
                                 onChange={(e) => setEmailInput(e.target.value)}
-                                placeholder="Añadir email"
+                                placeholder={t("add_email_placeholder")}
                                 className="w-full border border-gray-300 rounded-md p-2 mt-1 mr-2"
                             />
                             <button
@@ -95,7 +91,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                                 onClick={handleAddEmail}
                                 className="bg-blue-600 text-white px-3 py-2 rounded-md"
                             >
-                                Añadir
+                                {t("add")}
                             </button>
                         </div>
                         <div className="mt-2">
@@ -117,20 +113,18 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                         </div>
                     </div>
                 </form>
-
-                {/* Botones */}
                 <div className="flex justify-end gap-2 mt-4">
                     <button
                         onClick={handleClose}
                         className="bg-gray-300 px-4 py-2 rounded-md"
                     >
-                        Cerrar
+                        {t("close")}
                     </button>
                     <button
                         onClick={handleSubmit}
                         className="bg-blue-600 text-white px-4 py-2 rounded-md"
                     >
-                        Enviar
+                        {t("submit")}
                     </button>
                 </div>
             </div>
