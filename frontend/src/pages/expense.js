@@ -1,3 +1,4 @@
+// Modificación
 import React, { useState, useEffect } from "react";
 import ExpenseHeader from "../components/ExpenseHeader";
 import ExpenseUnderHeader from "../components/ExpenseUnderHeader";
@@ -9,8 +10,10 @@ import axiosInstance from "../components/axiosInstance";
 import { getUserIdFromToken } from "../components/AuthUtils";
 import AddExpenseModal from "../components/AddExpenseModal";
 import EditExpenseModal from "../components/EditExpenseModal"; // Modal para editar
+import { useTranslation } from "react-i18next";
 
 export function Expense() {
+    const { t } = useTranslation();
     const { idGroup } = useParams();
     const [group, setGroup] = useState(null);
     const [expenses, setExpenses] = useState([]);
@@ -29,7 +32,7 @@ export function Expense() {
     useEffect(() => {
         const fetchGroupData = async () => {
             if (!userId) {
-                setError("¡No hay usuario logueado!");
+                setError(t("errorFetchingUser"));
                 setLoading(false);
                 return;
             }
@@ -39,18 +42,18 @@ export function Expense() {
                 setGroup(response.data);
                 setGroupCurrency(response.data.currency); // Establecer la moneda del grupo
             } catch (error) {
-                console.error("Error al obtener los datos del grupo:", error);
-                setError("Error al obtener los datos del grupo");
+                console.error(t("errorFetchingGroups"), error);
+                setError(t("errorFetchingGroups"));
             }
         };
 
         fetchGroupData();
-    }, [idGroup, userId]);
+    }, [idGroup, userId, t]);
 
     useEffect(() => {
         const fetchExpenses = async () => {
             if (!userId) {
-                setError("¡No hay usuario logueado!");
+                setError(t("errorFetchingUser"));
                 setLoading(false);
                 return;
             }
@@ -63,15 +66,15 @@ export function Expense() {
                     setExpenses(response.data);
                 }
             } catch (error) {
-                console.error("Error al obtener los gastos:", error);
-                setError("Error al obtener los datos");
+                console.error(t("errorFetchingExpenses"), error);
+                setError(t("errorFetchingExpenses"));
             } finally {
                 setLoading(false);
             }
         };
 
         fetchExpenses();
-    }, [idGroup, userId]);
+    }, [idGroup, userId, t]);
 
     // Fetch para obtener los miembros del grupo
     useEffect(() => {
@@ -82,12 +85,12 @@ export function Expense() {
                 );
                 setMembers(response.data);
             } catch (error) {
-                console.error("Error al obtener los miembros del grupo:", error);
+                console.error(t("errorFetchingMembers"), error);
             }
         };
 
         fetchMembers();
-    }, [idGroup, userId]);
+    }, [idGroup, userId, t]);
 
     const fetchBizums = async () => {
         try {
@@ -101,8 +104,8 @@ export function Expense() {
             }
             setBizumsModalOpen(true);
         } catch (error) {
-            console.error("Error al obtener los bizums:", error);
-            alert("Error al cargar los bizums");
+            console.error(t("errorFetchingBizums"), error);
+            alert(t("errorFetchingBizums"));
         }
     };
 
@@ -112,7 +115,7 @@ export function Expense() {
 
     const handleCreateExpense = async (newExpense) => {
         if (!userId) {
-            alert("¡No hay usuario logueado!");
+            alert(t("errorFetchingUser"));
             return;
         }
 
@@ -121,12 +124,12 @@ export function Expense() {
                 `/users/${userId}/groups/${idGroup}/expenses`,
                 newExpense
             );
-            console.log("Nuevo gasto creado:", response.data);
+            console.log(t("addExpense"), response.data);
             setExpenses((prev) => [...prev, response.data]); // Actualiza el estado de manera inmutable
             setExpenseModalOpen(false);
         } catch (error) {
-            console.error("Error creando el gasto:", error);
-            alert("Error al crear el gasto");
+            console.error(t("errorCreatingExpense"), error);
+            alert(t("errorCreatingExpense"));
         }
     };
 
@@ -143,7 +146,7 @@ export function Expense() {
             const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/members`);
             setMembers(response.data);
         } catch (error) {
-            console.error("Error al actualizar los miembros del grupo:", error);
+            console.error(t("errorUpdatingMembers"), error);
         }
     };
 
@@ -159,11 +162,11 @@ export function Expense() {
                     onShowDebts={fetchBizums}
                 />
 
-                {loading && <p className="text-center">Loading...</p>}
+                {loading && <p className="text-center">{t("loading")}</p>}
                 {!loading && error && <p className="text-center text-red-500">{error}</p>}
                 {!loading && !error && expenses.length === 0 && (
                     <p className="text-center text-gray-500">
-                        De momento no hay contenido para este grupo.
+                        {t("noExpenses")}
                     </p>
                 )}
                 {!loading && !error && expenses.length > 0 && (
@@ -181,7 +184,7 @@ export function Expense() {
                         onClick={() => setExpenseModalOpen(true)}
                         className="p-2 flex justify-center items-center rounded-full bg-sky-500 text-white px-6 py-3 mx-5 -mb-4 hover:bg-cyan-700 focus:outline-none focus:bg-blue-500"
                     >
-                        Crear Nuevo Gasto
+                        {t("createNewExpense")}
                     </button>
                 </div>
             </div>

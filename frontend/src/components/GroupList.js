@@ -1,13 +1,15 @@
 import React from "react";
 import GroupCard from "./GroupCard";
+import { useTranslation } from "react-i18next";
 
 const GroupList = ({ groups, noGroupsMessage }) => {
+    const { t } = useTranslation();
     return (
         <div className="max-w-6xl mx-auto my-8">
             <div className="container mx-auto px-6">
                 <div className="mt-16">
                     <h3 className="flex justify-center text-2xl text-slate-700 font-medium uppercase">
-                        Groups
+                         { t("groups") }
                     </h3>
 
                     {/* Mensaje cuando no hay grupos */}
