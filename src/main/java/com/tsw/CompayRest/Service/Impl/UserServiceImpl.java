@@ -56,6 +56,17 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(user);
     }
 
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
+    public boolean allEmailsExist(List<String> emails) {
+        long count = userRepository.countByEmailIn(emails);
+        return count == emails.size();
+    }
+
 
     @Override
     public UserDto saveUser(UserDto userDto){

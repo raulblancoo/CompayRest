@@ -10,7 +10,6 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
     const userId = getUserIdFromToken();
 
     useEffect(() => {
-        // Fetch members if not passed as prop
         if (!groupMembers) {
             const fetchMembers = async () => {
                 try {

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const GroupModal = ({ isOpen, onClose, onSubmit }) => {
+const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
     const [groupName, setGroupName] = useState("");
     const [currency, setCurrency] = useState("EUR");
     const [emails, setEmails] = useState([]);
@@ -26,7 +26,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
         };
 
         onSubmit(data);
-        handleClose();
+        // No cerrar el modal aquí; el cierre se manejará en el componente padre si la creación es exitosa
     };
 
     const handleClose = () => {
@@ -37,12 +37,30 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
         onClose(); // Cierra la modal
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            // Limpiar los campos y errores cuando el modal se cierra
+            setGroupName("");
+            setCurrency("EUR");
+            setEmails([]);
+            setEmailInput("");
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-96 p-6">
                 <h2 className="text-xl font-semibold mb-4">Crear Nuevo Grupo</h2>
+
+                {/* Mostrar el mensaje de error si existe */}
+                {error && (
+                    <div className="mb-4 text-red-500">
+                        {error}
+                    </div>
+                )}
+
                 <form>
                     {/* Input: Nombre del grupo */}
                     <div className="mb-4">

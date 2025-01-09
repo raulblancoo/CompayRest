@@ -9,7 +9,7 @@ export function Groups() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
+    const [createGroupError, setCreateGroupError] = useState(null); // Estado para errores al crear grupos
 
     const userId = getUserIdFromToken();
     //const navigate = useNavigate();
@@ -18,7 +18,7 @@ export function Groups() {
         const fetchGroups = async () => {
 
             if (!userId) {
-                setError("¡No hay usuario logueado, chinga tu madre!");
+                setError("¡No hay usuario logueado, por favor inicia sesión!");
                 setLoading(false);
                 return;
             }
@@ -29,7 +29,7 @@ export function Groups() {
                 setLoading(false);
             } catch (err) {
                 console.error("Error fetching groups:", err);
-                setError("Failed to fetch groups");
+                setError("Error al obtener los grupos");
                 setLoading(false);
             }
         };
@@ -38,16 +38,24 @@ export function Groups() {
     }, [userId]);
 
     const handleOpenModal = () => setIsModalOpen(true);
-    const handleCloseModal = () => setIsModalOpen(false);
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setCreateGroupError(null); // Limpiar errores al cerrar el modal
+    };
 
     const handleCreateGroup = async (newGroup) => {
         try {
             const response = await axiosInstance.post(`/users/${userId}/groups`, newGroup);
             setGroups((prevGroups) => [...prevGroups, response.data]);
             setIsModalOpen(false); // Cierra la modal después de crear el grupo
+            setCreateGroupError(null); // Limpiar errores previos
         } catch (err) {
             console.error("Error creating group:", err);
-
+            if (err.response && err.response.data) {
+                setCreateGroupError(err.response.data); // Establecer mensaje de error del backend
+            } else {
+                setCreateGroupError("Error al crear el grupo"); // Mensaje genérico
+            }
         }
     };
 
@@ -55,13 +63,13 @@ export function Groups() {
         <>
             <div className="flex flex-col min-h-screen">
                 <main className="flex-grow overflow-y-auto pb-24">
-                    {loading && <p className="text-center">Loading...</p>}
+                    {loading && <p className="text-center">Cargando...</p>}
                     {error && <p className="text-center text-red-500">{error}</p>}
                     {!loading && !error && (
                         <>
                             <GroupList
                                 groups={groups}
-                                noGroupsMessage="No groups available"
+                                noGroupsMessage="No hay grupos disponibles"
                             />
                             {/* Botón para abrir la modal */}
                             <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2">
@@ -82,6 +90,7 @@ export function Groups() {
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 onSubmit={handleCreateGroup}
+                error={createGroupError} // Pasar el error al modal
             />
         </>
     );
