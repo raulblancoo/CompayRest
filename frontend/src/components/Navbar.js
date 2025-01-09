@@ -23,8 +23,7 @@ const Navbar = () => {
 
     const getUser = async () => {
         try {
-            const userId = getUserIdFromToken();
-            const response = await axiosInstance.get(`/users/${userId}`);
+            const response = await axiosInstance.get(`/users/me`);
             if (response.status === 204) {
                 setUser({});
             } else {

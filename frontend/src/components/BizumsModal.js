@@ -1,11 +1,34 @@
-import React from "react";
-import { getUserIdFromToken } from "./AuthUtils";
+import React, { useState, useEffect } from "react";
+import axiosInstance from "../components/axiosInstance";
 import { getCurrencySymbol } from "./CurrencyUtils";
 
 const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
+    const [currentUserId, setCurrentUserId] = useState(null); // Añadido para almacenar el userId del backend
+
+    // Obtener el userId desde el backend
+    useEffect(() => {
+        const fetchUserId = async () => {
+            try {
+                const response = await axiosInstance.get("/users/me"); // Suponemos que este endpoint devuelve el usuario autenticado
+                setCurrentUserId(response.data.id); // Almacenamos el userId en el estado
+            } catch (error) {
+                console.error("Error al obtener el userId:", error);
+            }
+        };
+
+        fetchUserId();
+    }, []);
+
     if (!isOpen) return null;
 
-    const currentUserId = getUserIdFromToken();
+    // Si el `userId` aún no está cargado, mostramos un estado de carga o evitamos renderizar el contenido
+    if (!currentUserId) {
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                <p className="text-white text-lg">Cargando datos...</p>
+            </div>
+        );
+    }
 
     // Obtener el símbolo de la moneda
     const currencySymbol = getCurrencySymbol(currency);
@@ -50,16 +73,16 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                                 <th className="border-b-2 py-2 text-gray-900 uppercase">Balance Neto</th>
                             </tr>
                             </thead>
-                            <tbody className>
+                            <tbody>
                             {balances.map((balance) => (
                                 <tr
                                     key={balance.id}
                                     className={
                                         balance.net < 0
-                                            ? 'bg-red-100'
+                                            ? "bg-red-100"
                                             : balance.net > 0
-                                                ? 'bg-green-100'
-                                                : 'bg-gray-100'
+                                                ? "bg-green-100"
+                                                : "bg-gray-100"
                                     }
                                 >
                                     <td className="ml-1 py-2 flex items-center">
@@ -79,10 +102,10 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                                     <td
                                         className={`py-2 font-bold ${
                                             balance.net > 0
-                                                ? 'text-green-500'
+                                                ? "text-green-500"
                                                 : balance.net < 0
-                                                    ? 'text-red-500'
-                                                    : 'text-gray-500'
+                                                    ? "text-red-500"
+                                                    : "text-gray-500"
                                         }`}
                                     >
                                         {balance.net.toFixed(2)} {currencySymbol}
@@ -103,16 +126,28 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                         <ul className="space-y-2">
                             {userDebts.map((bizum, index) => (
                                 <li key={index} className="p-4 bg-gray-100 rounded-md">
-                                    {bizum.loan_user.id === currentUserId
-                                        ? <p><span
-                                            className="font-semibold">{bizum.payer_user.name} {bizum.payer_user.surname}</span> te
-                                            debe <span
-                                                className="text-green-600">{bizum.amount.toFixed(2)} {currencySymbol}</span>
+                                    {bizum.loan_user.id === currentUserId ? (
+                                        <p>
+                                            <span className="font-semibold">
+                                                {bizum.payer_user.name} {bizum.payer_user.surname}
+                                            </span>{" "}
+                                            te debe{" "}
+                                            <span className="text-green-600">
+                                                {bizum.amount.toFixed(2)} {currencySymbol}
+                                            </span>
                                         </p>
-                                        : <p>Debes <span
-                                            className="text-red-600">{bizum.amount.toFixed(2)} {currencySymbol}</span> a <span
-                                            className="font-semibold">{bizum.loan_user.name} {bizum.loan_user.surname}</span>
-                                        </p>}
+                                    ) : (
+                                        <p>
+                                            Debes{" "}
+                                            <span className="text-red-600">
+                                                {bizum.amount.toFixed(2)} {currencySymbol}
+                                            </span>{" "}
+                                            a{" "}
+                                            <span className="font-semibold">
+                                                {bizum.loan_user.name} {bizum.loan_user.surname}
+                                            </span>
+                                        </p>
+                                    )}
                                 </li>
                             ))}
                         </ul>
@@ -128,11 +163,18 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                         <ul className="space-y-2">
                             {otherDebts.map((bizum, index) => (
                                 <li key={index} className="p-4 bg-gray-100 rounded-md">
-                                    <p><span
-                                        className="font-semibold">{bizum.payer_user.name} {bizum.payer_user.surname}</span> le
-                                        debe <span
-                                            className="text-red-600">{bizum.amount.toFixed(2)} {currencySymbol}</span> a <span
-                                            className="font-semibold">{bizum.loan_user.name} {bizum.loan_user.surname}</span>
+                                    <p>
+                                        <span className="font-semibold">
+                                            {bizum.payer_user.name} {bizum.payer_user.surname}
+                                        </span>{" "}
+                                        le debe{" "}
+                                        <span className="text-red-600">
+                                            {bizum.amount.toFixed(2)} {currencySymbol}
+                                        </span>{" "}
+                                        a{" "}
+                                        <span className="font-semibold">
+                                            {bizum.loan_user.name} {bizum.loan_user.surname}
+                                        </span>
                                     </p>
                                 </li>
                             ))}
