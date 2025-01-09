@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../components/axiosInstance";
+import { useTranslation } from "react-i18next"; // Importar useTranslation
 import { getUserIdFromToken } from "./AuthUtils";
 import {
     getErrorMessage,
@@ -8,6 +9,7 @@ import {
 } from "./validaciones/expendValidaciones"; // Importamos las validaciones existentes
 
 const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
+    const { t } = useTranslation(); // Inicializar useTranslation
     const [members, setMembers] = useState([]); // Lista de miembros del grupo
     const [selectedPayer, setSelectedPayer] = useState(""); // Miembro pagador
     const [selectedMembers, setSelectedMembers] = useState([]); // Miembros seleccionados
@@ -99,38 +101,36 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             expense_name: expenseName,
             originUserId: selectedPayer,
             share_method: shareMethod,
-            shares: finalShares, // Usar los valores calculados
+            shares: shares, // Usar los valores calculados
         };
 
         // Enviar los datos al backend
         onSubmit(data);
-        resetForm();
+
         onClose();
     };
 
     const handleClose = () => {
         setErrors({});
-        resetForm();
         onClose();
     };
-
 
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-96 p-6">
-                <h2 className="text-xl font-semibold mb-4">Crear Nuevo Gasto</h2>
+                <h2 className="text-xl font-semibold mb-4">{t("create_new_expense")}</h2>
                 <form>
                     {/* Selector: Pagador */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Pagador</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("payer")}</label>
                         <select
                             value={selectedPayer}
                             onChange={(e) => setSelectedPayer(e.target.value)}
                             className="w-full border border-gray-300 rounded-md p-2 mt-1"
                         >
-                            <option value="">Selecciona un miembro</option>
+                            <option value="">{t("select_member")}</option>
                             {members.map((member) => (
                                 <option key={member.id} value={member.id}>
                                     {member.name} {member.surname}
@@ -141,7 +141,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
                     {/* Checkboxes: Selección de miembros */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Miembros del grupo</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("group_members")}</label>
                         {members.map((member) => (
                             <div key={member.email} className="flex items-center">
                                 <input
@@ -160,7 +160,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
                     {/* Input: Nombre del gasto */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Nombre del Gasto</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("expense_name")}</label>
                         <input
                             type="text"
                             value={expenseName}
@@ -171,7 +171,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
                     {/* Input: Cantidad Total */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Cantidad total</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("total_amount")}</label>
                         <input
                             type="number"
                             value={amount}
@@ -182,15 +182,15 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
                     {/* Selector: Método de Compartición */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Método de División</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("share_method")}</label>
                         <select
                             value={shareMethod}
                             onChange={(e) => setShareMethod(e.target.value)}
                             className="w-full border border-gray-300 rounded-md p-2 mt-1"
                         >
-                            <option value="PARTESIGUALES">Partes Iguales</option>
-                            <option value="PARTESDESIGUALES">Partes Desiguales</option>
-                            <option value="PORCENTAJES">Porcentajes</option>
+                            <option value="PARTESIGUALES">{t("equal_shares")}</option>
+                            <option value="PARTESDESIGUALES">{t("unequal_shares")}</option>
+                            <option value="PORCENTAJES">{t("percentages")}</option>
                         </select>
                     </div>
                 </form>
@@ -198,11 +198,11 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                 {errors.length > 0 && (
                     <div
                         id="divErrores"
-                        className="flex p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50  dark:text-red-400"
+                        className="flex p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:text-red-400"
                         role="alert"
                     >
                         <div>
-                            <p className="font-medium">Errores:</p>
+                            <p className="font-medium">{t("errors")}</p>
                             <ul className="mt-1.5 list-disc list-inside pl-5">
                                 {errors.map((error, index) => (
                                     <li key={index}>{error}</li>
@@ -215,10 +215,10 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                 {/* Botones */}
                 <div className="flex justify-end gap-2 mt-4">
                     <button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded-md">
-                        Cerrar
+                        {t("close")}
                     </button>
                     <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2 rounded-md">
-                        Enviar
+                        {t("submit")}
                     </button>
                 </div>
             </div>

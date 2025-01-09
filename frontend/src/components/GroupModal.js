@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+
 import {
     validateGroupName,
     validateEmail,
@@ -90,11 +91,9 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-96 p-6">
-                <h2 className="text-xl font-semibold mb-4">Crear Nuevo Grupo</h2>
-                <form onSubmit={(e) => e.preventDefault()}>
-                    {/* Input: Nombre del grupo */}
+
                 <h2 className="text-xl font-semibold mb-4">{t("create_new_group")}</h2>
-                <form>
+                <form onSubmit={(e) => e.preventDefault()}>
                     <div className="mb-4">
                         <label htmlFor="groupName" className="block text-sm font-medium text-gray-700">
                             {t("group_name")}
