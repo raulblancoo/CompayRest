@@ -30,5 +30,4 @@ public class BizumController {
 
         return ResponseEntity.ok(bizums); // HTTP 200
     }
-
 }

@@ -1,16 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosInstance from "../components/axiosInstance";
-import { jwtDecode } from 'jwt-decode';
-import {getUserIdFromToken} from "./AuthUtils";
+import { getUserIdFromToken } from "./AuthUtils";
 
-const AddMemberModal = ({ onClose, idGroup }) => {
+const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
     const [emails, setEmails] = useState([]);
     const [currentEmail, setCurrentEmail] = useState('');
+    const [members, setMembers] = useState(groupMembers || []);
+
+    const userId = getUserIdFromToken();
+
+    useEffect(() => {
+        // Fetch members if not passed as prop
+        if (!groupMembers) {
+            const fetchMembers = async () => {
+                try {
+                    const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/members`);
+                    setMembers(response.data);
+                } catch (error) {
+                    console.error("Error al cargar miembros del grupo:", error);
+                }
+            };
+            fetchMembers();
+        }
+    }, [groupMembers, idGroup, userId]);
 
     const handleAddEmail = () => {
         if (currentEmail && !emails.includes(currentEmail)) {
             setEmails([...emails, currentEmail]);
-            setCurrentEmail(''); // Resetea el campo
+            setCurrentEmail('');
         }
     };
 
@@ -18,25 +35,41 @@ const AddMemberModal = ({ onClose, idGroup }) => {
         setEmails(emails.filter((e) => e !== email));
     };
 
-
-    const userId = getUserIdFromToken();
-
     const handleSubmit = async () => {
         try {
             const response = await axiosInstance.post(`/users/${userId}/groups/${idGroup}/members/email`, emails);
-            alert('Miembros añadidos correctamente');
-            onClose();
+            onMembersAdded(); // Notificar al padre que se han añadido miembros
+            onClose(); // Cerrar el modal
         } catch (error) {
-            console.error(error);
-            alert('Ocurrió un error al añadir los miembros');
+            console.error("Error al añadir miembros:", error);
+            alert("Error al añadir miembros. Por favor, verifica los correos e inténtalo de nuevo.");
         }
     };
 
-
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[90vh] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-4">Añadir Miembros</h2>
+
+                {/* Lista de usuarios actuales del grupo */}
+                <div className="mb-4">
+                    <h3 className="font-semibold text-gray-600 mb-2">Miembros Actuales ({members.length})</h3>
+                    <ul className="space-y-4">
+                        {members.map((member) => (
+                            <li key={member.email} className="flex items-center gap-4">
+                                <img
+                                    src={member.avatarURL || "https://via.placeholder.com/40"}
+                                    alt={member.name}
+                                    className="w-10 h-10 rounded-full"
+                                />
+                                <div>
+                                    <p className="font-medium text-gray-800">{member.name} {member.surname}</p>
+                                    <p className="text-sm text-gray-500">{member.email}</p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
 
                 {/* Campo de Emails */}
                 <div className="mb-4">
@@ -56,7 +89,7 @@ const AddMemberModal = ({ onClose, idGroup }) => {
                         />
                         <button
                             onClick={handleAddEmail}
-                            className="px-4 bg-blue-500 text-white rounded-r-md hover:bg-blue-600"
+                            className="px-4 bg-sky-500 hover:bg-cyan-700 text-white rounded-r-md"
                         >
                             Añadir
                         </button>
@@ -89,7 +122,7 @@ const AddMemberModal = ({ onClose, idGroup }) => {
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg"
+                        className="px-4 py-2 text-sm font-medium text-white bg-sky-500 hover:bg-cyan-700 rounded-lg"
                     >
                         Añadir
                     </button>

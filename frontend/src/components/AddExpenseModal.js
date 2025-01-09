@@ -32,7 +32,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         };
 
         fetchMembers();
-    }, [groupId]);
+    }, [groupId, userId]);
 
     const handleMemberSelection = (email) => {
         setSelectedMembers((prev) =>
@@ -99,12 +99,21 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             expense_name: expenseName,
             originUserId: selectedPayer,
             share_method: shareMethod,
-            shares,
+            shares: finalShares, // Usar los valores calculados
         };
 
+        // Enviar los datos al backend
         onSubmit(data);
+        resetForm();
         onClose();
     };
+
+    const handleClose = () => {
+        setErrors({});
+        resetForm();
+        onClose();
+    };
+
 
     if (!isOpen) return null;
 
@@ -113,6 +122,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             <div className="bg-white rounded-lg shadow-lg w-96 p-6">
                 <h2 className="text-xl font-semibold mb-4">Crear Nuevo Gasto</h2>
                 <form>
+                    {/* Selector: Pagador */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Pagador</label>
                         <select
@@ -129,6 +139,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         </select>
                     </div>
 
+                    {/* Checkboxes: Selección de miembros */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Miembros del grupo</label>
                         {members.map((member) => (
@@ -147,6 +158,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         ))}
                     </div>
 
+                    {/* Input: Nombre del gasto */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Nombre del Gasto</label>
                         <input
@@ -157,6 +169,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         />
                     </div>
 
+                    {/* Input: Cantidad Total */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Cantidad total</label>
                         <input
@@ -167,6 +180,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         />
                     </div>
 
+                    {/* Selector: Método de Compartición */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Método de División</label>
                         <select
@@ -198,6 +212,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                     </div>
                 )}
 
+                {/* Botones */}
                 <div className="flex justify-end gap-2 mt-4">
                     <button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded-md">
                         Cerrar

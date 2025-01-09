@@ -1,9 +1,6 @@
 package com.tsw.CompayRest.Controller;
 
-import com.tsw.CompayRest.Dto.ExpenseDto;
-import com.tsw.CompayRest.Dto.GroupDto;
-import com.tsw.CompayRest.Dto.NewExpenseDto;
-import com.tsw.CompayRest.Dto.UserDto;
+import com.tsw.CompayRest.Dto.*;
 import com.tsw.CompayRest.Service.ExpenseService;
 import com.tsw.CompayRest.Service.ExpenseShareService;
 import com.tsw.CompayRest.Service.GroupService;
@@ -12,10 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @RestController
 @RequestMapping("/users/{userId}/groups/{groupId}/expenses")
@@ -46,9 +41,17 @@ public class ExpenseController {
 
     @GetMapping("/{expenseId}")
     public ResponseEntity<ExpenseDto> getExpenseById(@PathVariable("expenseId") Long expenseId) {
-        return expenseService.getExpenseById(expenseId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Optional<ExpenseDto> expense = expenseService.getExpenseById(expenseId);
+
+        if (expense.isPresent()) {
+            ExpenseDto expenseDto = expense.get(); // Extraer el objeto del Optional
+
+            expenseDto.setShares(expenseShareService.getExpenseShareByExpenseId(expenseId));
+
+            return ResponseEntity.ok(expenseDto);
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping
@@ -59,7 +62,7 @@ public class ExpenseController {
         if(group.isPresent() && user.isPresent()) {
             ExpenseDto expenseDto = new ExpenseDto();
             expenseDto.setExpense_name(expense.getExpense_name());
-            expenseDto.setExpense_date(LocalDate.now());
+            expenseDto.setExpense_date(LocalDateTime.now());
             expenseDto.setAmount(expense.getAmount());
             expenseDto.setShare_method(expense.getShare_method());
             expenseDto.setOrigin_user(user.get());
@@ -92,25 +95,38 @@ public class ExpenseController {
             expenseToUpdate.setAmount(updatedExpense.getAmount());
             expenseToUpdate.setExpense_date(updatedExpense.getExpense_date());
             expenseToUpdate.setShare_method(updatedExpense.getShare_method());
-            expenseToUpdate.setOrigin_user(updatedExpense.getOrigin_user());
-            expenseToUpdate.setGroup(updatedExpense.getGroup());
+            expenseToUpdate.setOrigin_user(userService.getUserById(updatedExpense.getOrigin_user().getId()).orElseThrow());
+            expenseToUpdate.setGroup(groupService.getGroupById(updatedExpense.getGroup().getId()).orElseThrow());
 
             ExpenseDto savedExpense = expenseService.saveExpense(expenseToUpdate);
 
-            return ResponseEntity.ok(savedExpense);  // HTTP 200 OK
+            expenseShareService.deleteAll(expenseId);
+
+            for (ExpenseShareDto expense : updatedExpense.getShares()) {
+                expenseShareService.save(savedExpense.getId(), String.valueOf(expense.getDestiny_user().getEmail()), expense.getAssignedAmount());
+            }
+
+            return ResponseEntity.ok(savedExpense);
         }
 
-        return ResponseEntity.notFound().build();  // HTTP 404
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{expenseId}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable("expenseId") Long expenseId) {
-        boolean deletedShare = expenseShareService.deleteAll(expenseId);
-        boolean deletedExp = expenseService.deleteExpense(expenseId);
-        if (deletedExp && deletedShare) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<Void> deleteExpense(@PathVariable("groupId") Long groupId, @PathVariable("expenseId") Long expenseId) {
+        Optional<ExpenseDto> toDelete = expenseService.getExpenseById(expenseId);
+
+        if(toDelete.isPresent()) {
+            boolean deletedShare = expenseShareService.deleteAll(expenseId);
+            boolean deletedExp = expenseService.deleteExpense(expenseId);
+
+            if(deletedShare && deletedExp) {
+                groupService.updateGroupAmount(groupId,-toDelete.get().getAmount());
+                return ResponseEntity.noContent().build();
+            }
+
         }
+
+        return ResponseEntity.notFound().build();
     }
 }
