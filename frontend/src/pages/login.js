@@ -1,6 +1,8 @@
+// src/components/Login.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
+import { useTranslation } from "react-i18next";
 
 export function Login() {
     const [isLoginActive, setIsLoginActive] = useState(true);
@@ -13,6 +15,7 @@ export function Login() {
     });
     const [formErrors, setFormErrors] = useState({});
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     // Manejar cambios en los campos
     const handleChange = (e) => {
@@ -25,10 +28,10 @@ export function Login() {
     const validateLogin = () => {
         const errors = {};
         if (!formValues.email.trim()) {
-            errors.email = "Email is required.";
+            errors.email = t("email_required");
         }
         if (!formValues.password.trim()) {
-            errors.password = "Password is required.";
+            errors.password = t("password_required");
         }
         setFormErrors(errors);
         return Object.keys(errors).length === 0; // Retorna true si no hay errores
@@ -41,24 +44,23 @@ export function Login() {
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
 
         if (!formValues.name.trim()) {
-            errors.name = "First Name is required.";
+            errors.name = t("first_name_required");
         }
         if (!formValues.surname.trim()) {
-            errors.surname = "Last Name is required.";
+            errors.surname = t("last_name_required");
         }
         if (!formValues.username.trim()) {
-            errors.username = "Username is required.";
+            errors.username = t("username_required");
         }
         if (!formValues.email.trim()) {
-            errors.email = "Email is required.";
+            errors.email = t("email_required");
         } else if (!emailRegex.test(formValues.email)) {
-            errors.email = "Invalid email format.";
+            errors.email = t("invalid_email");
         }
         if (!formValues.password.trim()) {
-            errors.password = "Password is required.";
+            errors.password = t("password_required");
         } else if (!passwordRegex.test(formValues.password)) {
-            errors.password =
-                "Password must contain at least one uppercase letter, one lowercase letter, and one number.";
+            errors.password = t("password_requirements");
         }
 
         setFormErrors(errors);
@@ -87,7 +89,7 @@ export function Login() {
                 }
             }
         } catch (error) {
-            setFormErrors({ general: "An error occurred. Please retry." });
+            setFormErrors({ general: t("general_error") });
         }
     };
 
@@ -95,37 +97,34 @@ export function Login() {
         <div className="min-h-screen bg-gradient-to-r from-blue-500 to-blue-900 flex items-center justify-center">
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
                 <h1 className="text-2xl font-bold text-center mb-2 text-blue-900">
-                    {isLoginActive ? "Welcome back!" : "Register"}
+                    {isLoginActive ? t("welcome_back") : t("register")}
                 </h1>
                 <form onSubmit={handleSubmit}>
                     {!isLoginActive && (
                         <>
                             <div className="mb-4">
                                 <label className="block text-blue-900 font-medium" htmlFor="name">
-                                    First Name
+                                    {t("first_name")}
                                 </label>
                                 <input
                                     className="w-full p-3 border border-blue-300 rounded mt-1"
                                     id="name"
                                     name="name"
-                                    placeholder="First Name"
+                                    placeholder={t("first_name")}
                                     value={formValues.name}
                                     onChange={handleChange}
                                 />
                                 {formErrors.name && <p className="text-red-500">{formErrors.name}</p>}
                             </div>
                             <div className="mb-4">
-                                <label
-                                    className="block text-blue-900 font-medium"
-                                    htmlFor="surname"
-                                >
-                                    Last Name
+                                <label className="block text-blue-900 font-medium" htmlFor="surname">
+                                    {t("last_name")}
                                 </label>
                                 <input
                                     className="w-full p-3 border border-blue-300 rounded mt-1"
                                     id="surname"
                                     name="surname"
-                                    placeholder="Last Name"
+                                    placeholder={t("last_name")}
                                     value={formValues.surname}
                                     onChange={handleChange}
                                 />
@@ -134,17 +133,14 @@ export function Login() {
                                 )}
                             </div>
                             <div className="mb-4">
-                                <label
-                                    className="block text-blue-900 font-medium"
-                                    htmlFor="username"
-                                >
-                                    Username
+                                <label className="block text-blue-900 font-medium" htmlFor="username">
+                                    {t("username")}
                                 </label>
                                 <input
                                     className="w-full p-3 border border-blue-300 rounded mt-1"
                                     id="username"
                                     name="username"
-                                    placeholder="Username"
+                                    placeholder={t("username")}
                                     value={formValues.username}
                                     onChange={handleChange}
                                 />
@@ -156,13 +152,13 @@ export function Login() {
                     )}
                     <div className="mb-4">
                         <label className="block text-blue-900 font-medium" htmlFor="email">
-                            Email
+                            {t("email")}
                         </label>
                         <input
                             className="w-full p-3 border border-blue-300 rounded mt-1"
                             id="email"
                             name="email"
-                            placeholder="Email"
+                            placeholder={t("email")}
                             value={formValues.email}
                             onChange={handleChange}
                         />
@@ -170,13 +166,13 @@ export function Login() {
                     </div>
                     <div className="mb-4">
                         <label className="block text-blue-900 font-medium" htmlFor="password">
-                            Password
+                            {t("password")}
                         </label>
                         <input
                             className="w-full p-3 border border-blue-300 rounded mt-1"
                             id="password"
                             name="password"
-                            placeholder="Password"
+                            placeholder={t("password")}
                             type="password"
                             value={formValues.password}
                             onChange={handleChange}
@@ -189,22 +185,24 @@ export function Login() {
                         className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg font-semibold text-lg"
                         type="submit"
                     >
-                        {isLoginActive ? "Login" : "Register"}
+                        {isLoginActive ? t("submit") : t("submit")} {/* Considera cambiar a t("login") : t("register") */}
                     </button>
                 </form>
                 {formErrors.general && <p className="text-red-500 text-center mt-4">{formErrors.general}</p>}
                 <p className="text-center text-blue-700 mt-6">
                     {isLoginActive
-                        ? "Not registered? "
-                        : "Already have an account? "}
+                        ? t("not_registered") + " "
+                        : t("already_account") + " "}
                     <button
                         className="text-blue-500 font-semibold"
                         onClick={() => setIsLoginActive(!isLoginActive)}
                     >
-                        {isLoginActive ? "Register here" : "Login here"}
+                        {isLoginActive ? t("register_here") : t("login_here")}
                     </button>
                 </p>
             </div>
         </div>
     );
 }
+
+export default Login;

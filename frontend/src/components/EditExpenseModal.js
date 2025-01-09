@@ -18,14 +18,14 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
             try {
                 // Fetch group members
                 const membersResponse = await axiosInstance.get(
-                    `/users/${expense.origin_user.id}/groups/${groupId}/members`
+                    `/users/groups/${groupId}/members`
                 );
                 const membersData = membersResponse.data;
                 setMembers(membersData);
 
                 // Fetch expense details
                 const expenseResponse = await axiosInstance.get(
-                    `/users/${expense.origin_user.id}/groups/${groupId}/expenses/${expense.id}`
+                    `/users/groups/${groupId}/expenses/${expense.id}`
                 );
                 const expenseData = expenseResponse.data;
 
@@ -126,7 +126,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
 
         try {
             const response = await axiosInstance.put(
-                `/users/${expense.origin_user.id}/groups/${groupId}/expenses/${expense.id}`,
+                `/user/groups/${groupId}/expenses/${expense.id}`,
                 updatedExpense
             );
             onSubmit(response.data);

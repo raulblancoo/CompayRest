@@ -6,11 +6,12 @@ import AddMemberModal from "../components/AddMemberModal";
 import BizumsModal from "../components/BizumsModal";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
-import { getUserIdFromToken } from "../components/AuthUtils";
 import AddExpenseModal from "../components/AddExpenseModal";
 import EditExpenseModal from "../components/EditExpenseModal"; // Modal para editar
+import { useTranslation } from "react-i18next";
 
 export function Expense() {
+    const { t } = useTranslation();
     const { idGroup } = useParams();
     const [group, setGroup] = useState(null);
     const [expenses, setExpenses] = useState([]);
@@ -23,76 +24,84 @@ export function Expense() {
     const [members, setMembers] = useState([]); // Estado para los miembros del grupo
     const [groupCurrency, setGroupCurrency] = useState(""); // Estado para la moneda del grupo
     const [editingExpense, setEditingExpense] = useState(null);
+    const [userId, setUserId] = useState(null); // Estado para almacenar el userId
 
-    const userId = getUserIdFromToken();
+    // Obtener el userId desde el backend
+    useEffect(() => {
+        const fetchUserId = async () => {
+            try {
+                const response = await axiosInstance.get("/users/me"); // Suponemos que este endpoint devuelve el usuario autenticado
+                setUserId(response.data.id); // Almacenamos el userId en el estado
+            } catch (error) {
+                console.error(t("errorFetchingUser"), error);
+                setError(t("errorFetchingUser"));
+            }
+        };
+
+        fetchUserId();
+    }, [t]);
 
     useEffect(() => {
         const fetchGroupData = async () => {
-            if (!userId) {
-                setError("¡No hay usuario logueado!");
-                setLoading(false);
-                return;
-            }
+            if (!userId) return; // Esperamos a que el userId esté disponible
 
             try {
-                const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}`);
+                const response = await axiosInstance.get(`/users/groups/${idGroup}`);
                 setGroup(response.data);
                 setGroupCurrency(response.data.currency); // Establecer la moneda del grupo
             } catch (error) {
-                console.error("Error al obtener los datos del grupo:", error);
-                setError("Error al obtener los datos del grupo");
+                console.error(t("errorFetchingGroups"), error);
+                setError(t("errorFetchingGroups"));
             }
         };
 
         fetchGroupData();
-    }, [idGroup, userId]);
+    }, [idGroup, userId, t]);
 
     useEffect(() => {
         const fetchExpenses = async () => {
-            if (!userId) {
-                setError("¡No hay usuario logueado!");
-                setLoading(false);
-                return;
-            }
+            if (!userId) return; // Esperamos a que el userId esté disponible
 
             try {
-                const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/expenses`);
+                const response = await axiosInstance.get(`/users/groups/${idGroup}/expenses`);
                 if (response.status === 204) {
                     setExpenses([]);
                 } else {
                     setExpenses(response.data);
                 }
             } catch (error) {
-                console.error("Error al obtener los gastos:", error);
-                setError("Error al obtener los datos");
+                console.error(t("errorFetchingExpenses"), error);
+                setError(t("errorFetchingExpenses"));
             } finally {
                 setLoading(false);
             }
         };
 
         fetchExpenses();
-    }, [idGroup, userId]);
+    }, [idGroup, userId, t]);
 
     // Fetch para obtener los miembros del grupo
     useEffect(() => {
         const fetchMembers = async () => {
+            if (!userId) return; // Esperamos a que el userId esté disponible
+
             try {
                 const response = await axiosInstance.get(
-                    `/users/${userId}/groups/${idGroup}/members`
+                    `/users/groups/${idGroup}/members`
                 );
                 setMembers(response.data);
             } catch (error) {
-                console.error("Error al obtener los miembros del grupo:", error);
+                console.error(t("errorFetchingMembers"), error);
             }
         };
 
         fetchMembers();
-    }, [idGroup, userId]);
+    }, [idGroup, userId, t]);
 
     const fetchBizums = async () => {
         try {
             const response = await axiosInstance.get(
-                `/users/${userId}/groups/${idGroup}/bizums`
+                `/users/groups/${idGroup}/bizums`
             );
             if (response.status === 204) {
                 setBizums([]);
@@ -101,8 +110,8 @@ export function Expense() {
             }
             setBizumsModalOpen(true);
         } catch (error) {
-            console.error("Error al obtener los bizums:", error);
-            alert("Error al cargar los bizums");
+            console.error(t("errorFetchingBizums"), error);
+            alert(t("errorFetchingBizums"));
         }
     };
 
@@ -112,21 +121,21 @@ export function Expense() {
 
     const handleCreateExpense = async (newExpense) => {
         if (!userId) {
-            alert("¡No hay usuario logueado!");
+            alert(t("errorFetchingUser"));
             return;
         }
 
         try {
             const response = await axiosInstance.post(
-                `/users/${userId}/groups/${idGroup}/expenses`,
+                `/users/groups/${idGroup}/expenses`,
                 newExpense
             );
-            console.log("Nuevo gasto creado:", response.data);
+            console.log(t("addExpense"), response.data);
             setExpenses((prev) => [...prev, response.data]); // Actualiza el estado de manera inmutable
             setExpenseModalOpen(false);
         } catch (error) {
-            console.error("Error creando el gasto:", error);
-            alert("Error al crear el gasto");
+            console.error(t("errorCreatingExpense"), error);
+            alert(t("errorCreatingExpense"));
         }
     };
 
@@ -140,10 +149,10 @@ export function Expense() {
     // Nueva función para actualizar los miembros después de añadir
     const handleMembersAdded = async () => {
         try {
-            const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/members`);
+            const response = await axiosInstance.get(`/users/groups/${idGroup}/members`);
             setMembers(response.data);
         } catch (error) {
-            console.error("Error al actualizar los miembros del grupo:", error);
+            console.error(t("errorUpdatingMembers"), error);
         }
     };
 
@@ -159,11 +168,11 @@ export function Expense() {
                     onShowDebts={fetchBizums}
                 />
 
-                {loading && <p className="text-center">Loading...</p>}
+                {loading && <p className="text-center">{t("loading")}</p>}
                 {!loading && error && <p className="text-center text-red-500">{error}</p>}
                 {!loading && !error && expenses.length === 0 && (
                     <p className="text-center text-gray-500">
-                        De momento no hay contenido para este grupo.
+                        {t("noExpenses")}
                     </p>
                 )}
                 {!loading && !error && expenses.length > 0 && (
@@ -181,7 +190,7 @@ export function Expense() {
                         onClick={() => setExpenseModalOpen(true)}
                         className="p-2 flex justify-center items-center rounded-full bg-sky-500 text-white px-6 py-3 mx-5 -mb-4 hover:bg-cyan-700 focus:outline-none focus:bg-blue-500"
                     >
-                        Crear Nuevo Gasto
+                        {t("createNewExpense")}
                     </button>
                 </div>
             </div>

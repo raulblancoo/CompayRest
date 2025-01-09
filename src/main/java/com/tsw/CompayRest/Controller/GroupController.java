@@ -7,6 +7,8 @@ import com.tsw.CompayRest.Dto.UserDto;
 import com.tsw.CompayRest.Service.GroupMemberService;
 import com.tsw.CompayRest.Service.GroupService;
 import com.tsw.CompayRest.Service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/users/{userId}/groups")
+@RequestMapping("/users/groups")
 public class GroupController {
 
     private final GroupService groupService;
@@ -28,7 +30,14 @@ public class GroupController {
     }
 
     @GetMapping
-    public ResponseEntity<List<GroupDto>> getAllGroupsByUserId(@PathVariable("userId") Long userId) {
+    public ResponseEntity<List<GroupDto>> getAllGroupsByUserId(HttpServletRequest request) {
+
+        Long userId = (Long) request.getAttribute("userId");
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // HTTP 401
+        }
+
         List<GroupDto> groups = groupMemberService.getGroupsByUserId(userId);
         if (groups.isEmpty()) {
             return ResponseEntity.noContent().build(); // HTTP 204
@@ -37,7 +46,12 @@ public class GroupController {
     }
 
     @GetMapping("/{groupId}")
-    public ResponseEntity<GroupDto> getGroupById(@PathVariable("userId") Long userId, @PathVariable("groupId") Long groupId) {
+    public ResponseEntity<GroupDto> getGroupById(HttpServletRequest request, @PathVariable("groupId") Long groupId) {
+        Long userId = (Long) request.getAttribute("userId");
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // HTTP 401
+        }
         GroupMemberDto member = groupMemberService.getGroupMember(groupId,userId);
 
         if (member != null) {
@@ -49,7 +63,12 @@ public class GroupController {
 
     // TODO: comprobar si es del todo correcta, es decir, si las validaciones que no se hacen hacen falta
     @PostMapping
-    public ResponseEntity<GroupDto> createGroup(@PathVariable("userId") Long userId, @RequestBody NewGroupDto group) {
+    public ResponseEntity<GroupDto> createGroup(HttpServletRequest request, @RequestBody NewGroupDto group) {
+        Long userId = (Long) request.getAttribute("userId");
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // HTTP 401
+        }
         Optional<UserDto> user = userService.getUserById(userId);
 
         if (user.isEmpty()) {
