@@ -6,6 +6,8 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
     const [emails, setEmails] = useState([]);
     const [currentEmail, setCurrentEmail] = useState('');
     const [members, setMembers] = useState(groupMembers || []);
+    const [errorMessage, setErrorMessage] = useState(''); // Estado para mensajes de error
+    const [isSubmitting, setIsSubmitting] = useState(false); // Estado para manejar el estado de envío
 
     const userId = getUserIdFromToken();
 
@@ -27,6 +29,7 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
         if (currentEmail && !emails.includes(currentEmail)) {
             setEmails([...emails, currentEmail]);
             setCurrentEmail('');
+            setErrorMessage(''); // Limpiar mensajes de error al agregar un email
         }
     };
 
@@ -35,13 +38,33 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
     };
 
     const handleSubmit = async () => {
+        if (emails.length === 0) {
+            setErrorMessage("Por favor, agrega al menos un email.");
+            return;
+        }
+
+        setIsSubmitting(true); // Indicar que se está enviando la solicitud
+        setErrorMessage(''); // Limpiar mensajes de error antes de enviar
+
         try {
             const response = await axiosInstance.post(`/users/${userId}/groups/${idGroup}/members/email`, emails);
             onMembersAdded(); // Notificar al padre que se han añadido miembros
-            onClose(); // Cerrar el modal
+            onClose(); // Cerrar la modal solo si la solicitud fue exitosa
         } catch (error) {
             console.error("Error al añadir miembros:", error);
-            alert("Error al añadir miembros. Por favor, verifica los correos e inténtalo de nuevo.");
+            let message = "Error al añadir miembros. Por favor, verifica los correos e inténtalo de nuevo.";
+
+            if (error.response && error.response.data) {
+                if (typeof error.response.data === 'string') {
+                    message = error.response.data;
+                } else if (error.response.data.message) {
+                    message = error.response.data.message;
+                }
+            }
+
+            setErrorMessage(message); // Establecer el mensaje de error desde la respuesta del backend
+        } finally {
+            setIsSubmitting(false); // Finalizar el estado de envío
         }
     };
 
@@ -81,6 +104,7 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
                             onChange={(e) => setCurrentEmail(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
+                                    e.preventDefault(); // Prevenir el comportamiento por defecto
                                     handleAddEmail();
                                 }
                             }}
@@ -111,24 +135,34 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
                     </div>
                 </div>
 
+                {/* Mostrar mensaje de error si existe */}
+                {errorMessage && (
+                    <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+                        {errorMessage}
+                    </div>
+                )}
+
                 {/* Botones */}
                 <div className="flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-100 rounded-lg mr-2"
+                        disabled={isSubmitting} // Deshabilitar botón si se está enviando
+                        className="px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-100 rounded-lg mr-2 disabled:opacity-50"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="px-4 py-2 text-sm font-medium text-white bg-sky-500 hover:bg-cyan-700 rounded-lg"
+                        disabled={isSubmitting} // Deshabilitar botón si se está enviando
+                        className={`px-4 py-2 text-sm font-medium text-white bg-sky-500 hover:bg-cyan-700 rounded-lg ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        Añadir
+                        {isSubmitting ? 'Añadiendo...' : 'Añadir'}
                     </button>
                 </div>
             </div>
         </div>
     );
+
 };
 
 export default AddMemberModal;
