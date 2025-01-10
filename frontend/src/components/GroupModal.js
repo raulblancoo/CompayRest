@@ -1,18 +1,45 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+    validateGroupName,
+    validateEmail,
+    validateCurrency,
+    validateEmailList,
+} from "./validaciones/groupsFormValidaciones"; // Importa las validaciones
+
 const GroupModal = ({ isOpen, onClose, onSubmit }) => {
     const { t } = useTranslation();
     const [groupName, setGroupName] = useState("");
     const [currency, setCurrency] = useState("EUR");
     const [emails, setEmails] = useState([]);
+
     const [emailInput, setEmailInput] = useState("");
+    const [errors, setErrors] = useState([]);
 
     const handleAddEmail = () => {
-        if (emailInput && !emails.includes(emailInput)) {
-            setEmails([...emails, emailInput]);
-            setEmailInput("");
+        const userEmail = "example@user.com"; // Reemplaza esto con el correo del usuario autenticado
+        const userGroups = ["Grupo1", "Grupo2"]; // Reemplaza con los grupos del usuario
+        const allowedCurrencies = ["EUR", "USD", "GBP"];
+        const existingEmails = emails;
+
+        // Validar todos los campos del formulario
+        let validationErrors = [];
+
+
+        // Validar el nuevo email
+        validationErrors.push(...validateEmail(emailInput, existingEmails, userEmail, "sp"));
+
+        // Si hay errores, mostrarlos y detener el flujo
+        if (validationErrors.length > 0) {
+            setErrors(validationErrors);
+            return;
         }
+
+        // Añadir el nuevo email si no hay errores
+        setEmails([...emails, emailInput]);
+        setEmailInput("");
+        setErrors([]); // Limpiar errores si todo está correcto
     };
 
     const handleRemoveEmail = (emailToRemove) => {
@@ -20,12 +47,32 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
     };
 
     const handleSubmit = () => {
+        const userGroups = ["Grupo1", "Grupo2"]; // Reemplaza con los grupos del usuario
+        const allowedCurrencies = ["EUR", "USD", "GBP"];
+        const validationErrors = [];
+
+        // Validar nombre del grupo
+        validationErrors.push(...validateGroupName(groupName, userGroups, "sp"));
+
+        // Validar lista de emails
+        validationErrors.push(...validateEmailList(emails, "sp"));
+
+        // Validar moneda
+        validationErrors.push(...validateCurrency(currency, allowedCurrencies, "sp"));
+
+        if (validationErrors.length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
+        // Si no hay errores, enviar los datos
         const data = {
             group_name: groupName,
             currency,
             userEmails: emails,
         };
 
+        console.log("Data enviada:", data);
         onSubmit(data);
         handleClose();
     };
@@ -35,6 +82,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
         setCurrency("EUR");
         setEmails([]);
         setEmailInput("");
+        setErrors([]);
         onClose();
     };
 
@@ -43,8 +91,9 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-96 p-6">
+
                 <h2 className="text-xl font-semibold mb-4">{t("create_new_group")}</h2>
-                <form>
+                <form onSubmit={(e) => e.preventDefault()}>
                     <div className="mb-4">
                         <label htmlFor="groupName" className="block text-sm font-medium text-gray-700">
                             {t("group_name")}
@@ -57,6 +106,8 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                             className="w-full border border-gray-300 rounded-md p-2 mt-1"
                         />
                     </div>
+
+                    {/* Select: Moneda */}
                     <div className="mb-4">
                         <label htmlFor="currency" className="block text-sm font-medium text-gray-700">
                             {t("currency")}
@@ -73,6 +124,8 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                             <option value="JPY">{t("yen")}</option>
                         </select>
                     </div>
+
+                    {/* Input: Emails */}
                     <div className="mb-4">
                         <label htmlFor="emails" className="block text-sm font-medium text-gray-700">
                             {t("emails")}
@@ -113,6 +166,28 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                         </div>
                     </div>
                 </form>
+
+                {errors.length > 0 && (
+                    <div
+                        id="divErrores"
+                        className="flex p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50  dark:text-red-400"
+                        role="alert"
+                    >
+                        <div>
+                            <p className="font-medium">Errores:</p>
+                            <ul className="mt-1.5 list-disc list-inside pl-5">
+                                {errors.map((error, index) => (
+                                    <li key={index}>{error}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                )}
+
+
+
+
+                {/* Botones */}
                 <div className="flex justify-end gap-2 mt-4">
                     <button
                         onClick={handleClose}
