@@ -59,18 +59,6 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         );
     };
 
-
-    const validateForm = () => {
-        const validationErrors = [];
-    };
-  
-    const handleShareChange = (email, value) => {
-        setShares((prev) => ({
-            ...prev,
-            [email]: parseFloat(value),
-        }));
-    };
-
     const resetForm = () => {
         setSelectedPayer(userId); // Restablecemos el pagador al userId del backend
         setSelectedMembers(members.map((member) => member.email));
@@ -109,12 +97,6 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             if (totalPercentage !== 100) {
                 validationErrors.push(t("percentages_sum_error"));
             }
-        }
-
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-
         }
 
         setErrors(validationErrors);
@@ -244,6 +226,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                     </div>
                 )}
 
+
                 {/* Botones */}
                 <div className="flex justify-end gap-2 mt-4">
                     <button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded-md">
@@ -257,5 +240,6 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         </div>
     );
 };
+
 
 export default AddExpenseModal;
