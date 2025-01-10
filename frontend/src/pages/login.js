@@ -1,4 +1,3 @@
-// src/components/Login.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../components/axiosInstance";
@@ -16,6 +15,12 @@ export function Login() {
     const [formErrors, setFormErrors] = useState({});
     const navigate = useNavigate();
     const { t } = useTranslation();
+
+    // Función para alternar entre Login y Registro y limpiar errores
+    const toggleForm = () => {
+        setIsLoginActive(!isLoginActive);
+        setFormErrors({}); // Limpia los errores al cambiar de formulario
+    };
 
     // Manejar cambios en los campos
     const handleChange = (e) => {
@@ -86,10 +91,25 @@ export function Login() {
                 const response = await axiosInstance.post("/register", formValues);
                 if (response.status === 200 || response.status === 201) {
                     setIsLoginActive(true); // Cambiar a login tras registro exitoso
+                    setFormErrors({}); // Opcional: limpiar errores después del registro exitoso
                 }
             }
         } catch (error) {
             setFormErrors({ general: t("general_error") });
+          
+          //develop rbg
+           /* if (error.response && error.response.data) {
+                const { message } = error.response.data;
+
+                // Asignar errores específicos basados en el mensaje
+                if (message.toLowerCase().includes("email")) {
+                    setFormErrors({ email: message });
+                } else {
+                    setFormErrors({ general: message });
+                }
+            } else {
+                setFormErrors({ general: "Ocurrió un error. Por favor, inténtalo de nuevo." });
+            }*/
         }
     };
 
@@ -128,9 +148,7 @@ export function Login() {
                                     value={formValues.surname}
                                     onChange={handleChange}
                                 />
-                                {formErrors.surname && (
-                                    <p className="text-red-500">{formErrors.surname}</p>
-                                )}
+                                {formErrors.surname && <p className="text-red-500">{formErrors.surname}</p>}
                             </div>
                             <div className="mb-4">
                                 <label className="block text-blue-900 font-medium" htmlFor="username">
@@ -144,9 +162,7 @@ export function Login() {
                                     value={formValues.username}
                                     onChange={handleChange}
                                 />
-                                {formErrors.username && (
-                                    <p className="text-red-500">{formErrors.username}</p>
-                                )}
+                                {formErrors.username && <p className="text-red-500">{formErrors.username}</p>}
                             </div>
                         </>
                     )}
@@ -188,14 +204,16 @@ export function Login() {
                         {isLoginActive ? t("submit") : t("submit")} {/* Considera cambiar a t("login") : t("register") */}
                     </button>
                 </form>
-                {formErrors.general && <p className="text-red-500 text-center mt-4">{formErrors.general}</p>}
+                {formErrors.general && (
+                    <p className="text-red-500 text-center mt-4">{formErrors.general}</p>
+                )}
                 <p className="text-center text-blue-700 mt-6">
                     {isLoginActive
                         ? t("not_registered") + " "
                         : t("already_account") + " "}
                     <button
                         className="text-blue-500 font-semibold"
-                        onClick={() => setIsLoginActive(!isLoginActive)}
+                        onClick={toggleForm} // Usar la función de alternancia
                     >
                         {isLoginActive ? t("register_here") : t("login_here")}
                     </button>

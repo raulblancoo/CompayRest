@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users/groups/{groupId}/members")
@@ -68,39 +70,50 @@ public class GroupMemberController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     }
 
-    // TODO: para el create realmente no hace falta introducir más que la lista de emails (mirar chatgpt raúl para cambiarlo)
     @PostMapping("/email")
-    public ResponseEntity<Void> addGroupMemberByEmail(@PathVariable("groupId") Long groupId, @RequestBody List<String> emails ) {
-        Optional<GroupDto> group = groupService.getGroupById(groupId);
+    public ResponseEntity<String> addGroupMemberByEmail(@PathVariable("groupId") Long groupId,
+            @RequestBody List<String> emails) {
 
+        // Verificar si el grupo existe
+        Optional<GroupDto> groupOpt = groupService.getGroupById(groupId);
+        if (groupOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("El grupo con ID " + groupId + " no existe.");
+        }
 
-        for(String email: emails) {
-            Optional<UserDto> user = userService.getUserByEmail(email);
+        GroupDto group = groupOpt.get();
 
-            if (group.isPresent() && user.isPresent() ) {
-                groupMemberService.saveGroupMember(group.get(), user.get());
+        // Obtener todos los miembros actuales del grupo
+        List<UserDto> existingMembers = groupMemberService.getAllGroupMembers(groupId);
+
+        // Validar que todos los correos electrónicos existan en la base de datos
+        List<String> nonExistentEmails = emails.stream()
+                .filter(email -> !userService.existsByEmail(email))
+                .collect(Collectors.toList());
+
+        if (!nonExistentEmails.isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                    "Los siguientes correos electrónicos no existen en la base de datos: " + nonExistentEmails);
+        }
+
+        // Identificar los correos electrónicos que ya están en el grupo
+        List<String> alreadyInGroupEmails = emails.stream()
+                .filter(existingMembers::contains)
+                .collect(Collectors.toList());
+
+        if (!alreadyInGroupEmails.isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                    "Los siguientes correos electrónicos ya están en el grupo: " + alreadyInGroupEmails);
+        }
+
+        // Si todas las validaciones pasan, agregar los miembros al grupo
+        for (String email : emails) {
+            Optional<UserDto> userOpt = userService.getUserByEmail(email);
+            if (userOpt.isPresent()) {
+                groupMemberService.saveGroupMember(group, userOpt.get());
             }
         }
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // HTTP 204
     }
-
-    // TODO: no funciona correctamente el borrar miembro (NO LO BORRA, service o repository)
-    @DeleteMapping("/{memberId}")
-    public ResponseEntity<HttpStatus> deleteGroupMember(@PathVariable Long groupId, @PathVariable Long memberId) {
-        GroupMemberDto membership = groupMemberService.getGroupMember(groupId, memberId);
-
-        if (membership == null) {
-            return ResponseEntity.notFound().build(); //HTTP 404
-        }
-
-        boolean deleted = groupMemberService.deleteGroupMember(groupId, membership.getUser());
-
-        if (deleted) {
-            return ResponseEntity.noContent().build(); // HTTP 204
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // HTTP 500
-        }
-    }
-
 }

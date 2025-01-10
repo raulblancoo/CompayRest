@@ -11,6 +11,7 @@ export function Groups() {
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [userId, setUserId] = useState(null); // Estado para almacenar el userId
+  const [createGroupError, setCreateGroupError] = useState(null); // Estado para errores al crear grupos
 
     // Obtener el userId desde el backend
     useEffect(() => {
@@ -24,7 +25,6 @@ export function Groups() {
                 setLoading(false);
             }
         };
-
         fetchUserId();
     }, [t]);
 
@@ -53,15 +53,24 @@ export function Groups() {
 
 
     const handleOpenModal = () => setIsModalOpen(true);
-    const handleCloseModal = () => setIsModalOpen(false);
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setCreateGroupError(null); // Limpiar errores al cerrar el modal
+    };
 
     const handleCreateGroup = async (newGroup) => {
         try {
             const response = await axiosInstance.post(`/users/groups`, newGroup);
             setGroups((prevGroups) => [...prevGroups, response.data]);
-            setIsModalOpen(false);
+            setIsModalOpen(false); // Cierra la modal después de crear el grupo
+            setCreateGroupError(null); // Limpiar errores previos
         } catch (err) {
             console.error(t("error_creating_group"), err);
+            if (err.response && err.response.data) {
+                setCreateGroupError(err.response.data); // Establecer mensaje de error del backend
+            } else {
+                setCreateGroupError("Error al crear el grupo"); // Mensaje genérico
+            }
         }
     };
 
@@ -93,6 +102,7 @@ export function Groups() {
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 onSubmit={handleCreateGroup}
+                error={createGroupError} // Pasar el error al modal
             />
         </>
     );
