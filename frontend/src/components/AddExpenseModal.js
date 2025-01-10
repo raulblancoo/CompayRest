@@ -93,7 +93,6 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             validationErrors.push(t("exName_error"));
         }
 
-        let finalShares = {};
         if (shareMethod === "PARTESIGUALES") {
             const equalShare = totalAmount / selectedMembers.length;
             finalShares = selectedMembers.reduce((acc, email) => {
