@@ -55,8 +55,17 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
     const handleMemberSelection = (email) => {
         setSelectedMembers((prev) =>
-            prev.includes(email) ? prev.filter((member) => member !== email) : [...prev, email]
+            prev.includes(email)
+                ? prev.filter((member) => member !== email)
+                : [...prev, email]
         );
+    };
+
+    const handleShareChange = (email, value) => {
+        setShares((prev) => ({
+            ...prev,
+            [email]: parseFloat(value),
+        }));
     };
 
     const resetForm = () => {
@@ -81,13 +90,19 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             validationErrors.push(t("bad_decimal"));
         }
 
-        // Validar nombre del gasto
+        // Validaciones
         if (!expenseName || expenseName.length > 30) {
             validationErrors.push(t("exName_error"));
         }
 
-        // Validar distribución (si aplica)
-        if (shareMethod === "PARTESDESIGUALES") {
+        let finalShares = {};
+        if (shareMethod === "PARTESIGUALES") {
+            const equalShare = totalAmount / selectedMembers.length;
+            finalShares = selectedMembers.reduce((acc, email) => {
+                acc[email] = parseFloat(equalShare.toFixed(2));
+                return acc;
+            }, {});
+        } else if (shareMethod === "PARTESDESIGUALES") {
             const totalShares = Object.values(shares).reduce((sum, share) => sum + share, 0);
             if (totalShares !== totalAmount) {
                 validationErrors.push(t("shares_sum_error"));
@@ -97,6 +112,11 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             if (totalPercentage !== 100) {
                 validationErrors.push(t("percentages_sum_error"));
             }
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
         }
 
         setErrors(validationErrors);
@@ -115,7 +135,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             expense_name: expenseName,
             originUserId: selectedPayer,
             share_method: shareMethod,
-            shares: shares, // Usar los valores calculados
+            shares: finalShares,
         };
 
         // Enviar los datos al backend
@@ -133,12 +153,12 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white rounded-lg shadow-lg w-96 p-6">
-                <h2 className="text-xl font-semibold mb-4">{t("create_new_expense")}</h2>
+            <div className="bg-white rounded-lg shadow-lg w-96 p-6 max-h-[70vh] overflow-y-auto">
+                <h2 className="text-xl font-semibold mb-4">Crear Nuevo Gasto</h2>
                 <form>
                     {/* Selector: Pagador */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">{t("payer")}</label>
+                        <label className="block text-sm font-medium text-gray-700">Pagador</label>
                         <select
                             value={selectedPayer}
                             onChange={(e) => setSelectedPayer(e.target.value)}
@@ -155,7 +175,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
                     {/* Checkboxes: Selección de miembros */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">{t("group_members")}</label>
+                        <label className="block text-sm font-medium text-gray-700">Miembros del grupo</label>
                         {members.map((member) => (
                             <div key={member.email} className="flex items-center">
                                 <input
@@ -166,7 +186,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                                     className="mr-2"
                                 />
                                 <label htmlFor={`member-${member.email}`}>
-                                    {member.name} {member.surname} ({member.email})
+                                    {member.name} {member.surname}
                                 </label>
                             </div>
                         ))}
@@ -174,13 +194,14 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
                     {/* Input: Nombre del gasto */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">{t("expense_name")}</label>
+                        <label className="block text-sm font-medium text-gray-700">Nombre del Gasto</label>
                         <input
                             type="text"
                             value={expenseName}
                             onChange={(e) => setExpenseName(e.target.value)}
-                            className="w-full border border-gray-300 rounded-md p-2 mt-1"
+                            className={`w-full border ${errors.expenseName ? "border-red-500" : "border-gray-300"} rounded-md p-2 mt-1`}
                         />
+                        {errors.expenseName && <p className="text-red-500 text-sm mt-1">{errors.expenseName}</p>}
                     </div>
 
                     {/* Input: Cantidad Total */}
@@ -192,11 +213,12 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                             onChange={(e) => setAmount(e.target.value)}
                             className="w-full border border-gray-300 rounded-md p-2 mt-1"
                         />
+                        {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
                     </div>
 
                     {/* Selector: Método de Compartición */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">{t("share_method")}</label>
+                        <label className="block text-sm font-medium text-gray-700">Método de División</label>
                         <select
                             value={shareMethod}
                             onChange={(e) => setShareMethod(e.target.value)}
@@ -209,30 +231,42 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                     </div>
                 </form>
 
-                {errors.length > 0 && (
-                    <div
-                        id="divErrores"
-                        className="flex p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:text-red-400"
-                        role="alert"
-                    >
-                        <div>
-                            <p className="font-medium">{t("errors")}</p>
-                            <ul className="mt-1.5 list-disc list-inside pl-5">
-                                {errors.map((error, index) => (
-                                    <li key={index}>{error}</li>
-                                ))}
-                            </ul>
+                    {selectedMembers.length > 0 && shareMethod !== "PARTESIGUALES" && (
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">
+                                {shareMethod === "PARTESDESIGUALES" ? "Distribución" : "Porcentajes"}
+                            </label>
+                            {selectedMembers.map((email) => {
+                                const member = members.find((m) => m.email === email);
+                                return (
+                                    <div key={email} className="flex items-center gap-2 mt-2">
+                                        <span className="w-1/2">{member?.name} {member?.surname}</span>
+                                        <input
+                                            type="number"
+                                            value={shares[email] || ""}
+                                            onChange={(e) => handleShareChange(email, e.target.value)}
+                                            className={`w-1/2 border ${errors.shares ? "border-red-500" : "border-gray-300"} rounded-md p-2`}
+                                        />
+                                    </div>
+                                );
+                            })}
+                            {errors.shares && <p className="text-red-500 text-sm mt-1">{errors.shares}</p>}
                         </div>
-                    </div>
-                )}
-
+                    )}
+                </form>
 
                 {/* Botones */}
                 <div className="flex justify-end gap-2 mt-4">
-                    <button onClick={onClose} className="bg-gray-300 px-4 py-2 rounded-md">
+                    <button
+                        onClick={handleClose}
+                        className="bg-gray-300 px-4 py-2 rounded-md"
+                    >
                         {t("close")}
                     </button>
-                    <button onClick={handleSubmit} className="bg-blue-600 text-white px-4 py-2 rounded-md">
+                    <button
+                        onClick={handleSubmit}
+                        className="bg-sky-500 hover:bg-cyan-700 text-white px-4 py-2 rounded-md"
+                    >
                         {t("submit")}
                     </button>
                 </div>
@@ -240,6 +274,5 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         </div>
     );
 };
-
 
 export default AddExpenseModal;

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users/groups")
@@ -61,30 +62,43 @@ public class GroupController {
         }
     }
 
-    // TODO: comprobar si es del todo correcta, es decir, si las validaciones que no se hacen hacen falta
+  
     @PostMapping
-    public ResponseEntity<GroupDto> createGroup(HttpServletRequest request, @RequestBody NewGroupDto group) {
+    public ResponseEntity<?> createGroup(HttpServletRequest request, @RequestBody NewGroupDto group) {
         Long userId = (Long) request.getAttribute("userId");
 
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // HTTP 401
         }
+
         Optional<UserDto> user = userService.getUserById(userId);
 
         if (user.isEmpty()) {
-            return ResponseEntity.badRequest().build(); // HTTP 400 si el usuario no existe
+            return ResponseEntity.badRequest().body("El usuario con ID " + userId + " no existe."); // HTTP 400 si el usuario no existe
+        }
+
+        List<String> userEmails = group.getUserEmails();
+
+        // Validar que todos los correos electrónicos existan en la base de datos
+        List<String> nonExistentEmails = userEmails.stream()
+                .filter(email -> !userService.existsByEmail(email))
+                .collect(Collectors.toList());
+
+        if (!nonExistentEmails.isEmpty()) {
+            String errorMessage = "Los siguientes correos electrónicos no existen: " + nonExistentEmails;
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage); // HTTP 404 si algún correo no existe
         }
 
         GroupDto savedGroup = groupService.saveGroup(group);
 
-        // Nos guardamos siempre a nosotros como miembro
         groupMemberService.saveGroupMember(savedGroup, user.get());
 
-        // Agregamos los demás miembros por email
-        for (String email : group.getUserEmails()) {
+        for (String email : userEmails) {
             groupMemberService.saveGroupMember(savedGroup, email);
         }
 
-        return ResponseEntity.status(201).body(savedGroup); // HTTP 201
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedGroup); // HTTP 201
     }
+
+
 }

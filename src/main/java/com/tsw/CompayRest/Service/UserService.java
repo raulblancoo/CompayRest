@@ -14,7 +14,8 @@ public interface UserService {
     UserDto login(CredentialsDto credentialsDto);
     UserDto register(SignUpDto userDto);
     UserDto findByEmail(String login);
-
+    boolean existsByEmail(String email);
+    boolean allEmailsExist(List<String> emails);
 
     UserDto saveUser(UserDto user);
     Optional<UserDto> updateUser(Long id, UserDto updatedUser);

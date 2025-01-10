@@ -121,6 +121,16 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
         onClose();
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            // Limpiar los campos y errores cuando el modal se cierra
+            setGroupName("");
+            setCurrency("EUR");
+            setEmails([]);
+            setEmailInput("");
+        }
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     return (
