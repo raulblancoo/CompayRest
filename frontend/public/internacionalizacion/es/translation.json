@@ -40,6 +40,7 @@
   "exName_error": "El nombre del gasto no puede tener más de 30 caracteres.",
   "shares_sum_error": "La suma de las partes debe coincidir con la cantidad total.",
   "percentages_sum_error": "La suma de los porcentajes debe ser igual a 100.",
+  "percentages": "Porcentages",
   "yen": "Yen (¥)",
   "create_new_expense": "Crear Nuevo Gasto",
   "select_member": "Selecciona un miembro",
@@ -49,10 +50,11 @@
   "share_method": "Método de División",
   "balances_by_user": "Balances por Usuario",
   "user": "Usuario",
+  "payer": "Pagador",
   "owes_you": "te debe",
   "you_owe": "Debes",
   "net_balance": "Balance Neto",
-  "no_expenses": "Todavía no hay gastos para este grupo.",
+  "noExpenses": "Todavía no hay gastos para este grupo.",
   "my_bizums": "Mis Bizums",
   "to": "a",
   "no_pending_actions": "No tienes acciones pendientes.",
@@ -64,6 +66,7 @@
   "errors": "Errores",
   "bad_decimal": "Solo puede haber 2 decimales.",
   "close": "Cerrar",
+  "is_owed": "Le deben",
   "loading": "Cargando...",
   "error_fetching_groups": "Error al obtener los grupos",
   "no_groups_message": "No hay grupos disponibles",
@@ -94,7 +97,8 @@
   "currency_not_allowed": "La moneda seleccionada no está permitida.",
   "email_list_required": "Debes añadir al menos un email antes de enviar el formulario.",
   "amount": "Total Amount",
-  "add": "Añadir"
+  "add": "Añadir",
+  "adding": "Añadiendo"
 
 
 }

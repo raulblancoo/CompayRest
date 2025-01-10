@@ -2,11 +2,7 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "../components/axiosInstance";
 import { useTranslation } from "react-i18next"; // Importar useTranslation
 import { getUserIdFromToken } from "./AuthUtils";
-import {
-    getErrorMessage,
-    validateDistribution,
-    sumDistribution,
-} from "./validaciones/expendValidaciones"; // Importamos las validaciones existentes
+
 
 
 const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
@@ -19,6 +15,8 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
     const [shares, setShares] = useState({});
     const [errors, setErrors] = useState({});
+    let finalShares = {};
+
     const [userId, setUserId] = useState(null); // Añadido para almacenar el userId obtenido del backend;
 
     // Obtener el userId desde el backend
@@ -106,18 +104,22 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             const totalShares = Object.values(shares).reduce((sum, share) => sum + share, 0);
             if (totalShares !== totalAmount) {
                 validationErrors.push(t("shares_sum_error"));
+            }else {
+                finalShares = { ...shares };
             }
         } else if (shareMethod === "PORCENTAJES") {
             const totalPercentage = Object.values(shares).reduce((sum, percentage) => sum + percentage, 0);
             if (totalPercentage !== 100) {
                 validationErrors.push(t("percentages_sum_error"));
+            }else {
+                finalShares = selectedMembers.reduce((acc, email) => {
+                    acc[email] = parseFloat(((totalAmount * shares[email]) / 100).toFixed(2));
+                    return acc;
+                }, {});
             }
         }
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
+
 
         setErrors(validationErrors);
         return validationErrors.length === 0; // Retorna true si no hay errores
@@ -154,11 +156,11 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-96 p-6 max-h-[70vh] overflow-y-auto">
-                <h2 className="text-xl font-semibold mb-4">Crear Nuevo Gasto</h2>
+                <h2 className="text-xl font-semibold mb-4">{t("create_new_expense")}</h2>
                 <form>
                     {/* Selector: Pagador */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Pagador</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("payer")}</label>
                         <select
                             value={selectedPayer}
                             onChange={(e) => setSelectedPayer(e.target.value)}
@@ -175,7 +177,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
                     {/* Checkboxes: Selección de miembros */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Miembros del grupo</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("group_members")}</label>
                         {members.map((member) => (
                             <div key={member.email} className="flex items-center">
                                 <input
@@ -194,7 +196,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
                     {/* Input: Nombre del gasto */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Nombre del Gasto</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("expense_name")}</label>
                         <input
                             type="text"
                             value={expenseName}
@@ -218,7 +220,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
                     {/* Selector: Método de Compartición */}
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Método de División</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("share_method")}</label>
                         <select
                             value={shareMethod}
                             onChange={(e) => setShareMethod(e.target.value)}
@@ -229,7 +231,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                             <option value="PORCENTAJES">{t("percentages")}</option>
                         </select>
                     </div>
-                </form>
+
 
                     {selectedMembers.length > 0 && shareMethod !== "PARTESIGUALES" && (
                         <div className="mb-4">
@@ -254,6 +256,22 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                         </div>
                     )}
                 </form>
+                {errors.length > 0 && (
+                    <div
+                        id="divErrores"
+                        className="flex p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:text-red-400"
+                        role="alert"
+                    >
+                        <div>
+                            <p className="font-medium">{t("errors")}</p>
+                            <ul className="mt-1.5 list-disc list-inside pl-5">
+                                {errors.map((error, index) => (
+                                    <li key={index}>{error}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                )}
 
                 {/* Botones */}
                 <div className="flex justify-end gap-2 mt-4">

@@ -1,9 +1,13 @@
 import React from 'react';
 import axiosInstance from './axiosInstance';
 import { getCurrencySymbol } from './CurrencyUtils'; // Importamos la función para obtener el símbolo
+import { useTranslation } from "react-i18next";
+
 
 function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown, onDelete, onEdit }) {
     const { origin_user, amount, group, expense_name, id } = expense;
+    const { t } = useTranslation();
+
 
     const handleDelete = async () => {
         try {
@@ -24,10 +28,10 @@ function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown,
                 alt={origin_user.username}
             />
             <p className="text-gray-700 font-thin sm:me-6">
-                <span className="font-bold uppercase">{origin_user.username}</span>{' pagó '}
+                <span className="font-bold uppercase">{origin_user.username}</span>{t("paid")}
                 <span className="text-green-600 font-bold">
                     {amount}{getCurrencySymbol(group.currency)}
-                </span>{' por '}
+                </span>{t("for")}
                 <span className="font-bold uppercase">{expense_name}</span>
             </p>
 
@@ -64,7 +68,7 @@ function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown,
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 hover:text-black"
                                     onClick={() => onEdit(expense)} // Llamar a la función de edición
                                 >
-                                    Editar
+                                    {t("edit")}
                                 </button>
                             </li>
                             <li>
@@ -72,7 +76,7 @@ function ExpenseCard({ expense, userId, groupId, isDropdownOpen, toggleDropdown,
                                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 hover:text-black"
                                     onClick={handleDelete}
                                 >
-                                    Eliminar
+                                    {t("delete")}
                                 </button>
                             </li>
                         </ul>

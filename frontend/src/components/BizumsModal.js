@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../components/axiosInstance";
 import { getCurrencySymbol } from "./CurrencyUtils";
+import { useTranslation } from "react-i18next";
+
 
 const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
     const [currentUserId, setCurrentUserId] = useState(null); // Añadido para almacenar el userId del backend
+    const { t } = useTranslation();
+
 
     // Obtener el userId desde el backend
     useEffect(() => {
@@ -62,15 +66,15 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
             <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl max-h-[80vh] overflow-y-auto">
                 {/* Tabla de balances */}
                 <div className="mb-6">
-                    <h3 className="text-xl font-semibold mb-4 text-blue-600">Balances por Usuario</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-blue-600">{t("balances_by_user")}</h3>
                     {balances.length > 0 ? (
                         <table className="w-full text-left border-collapse">
                             <thead>
                             <tr>
-                                <th className="border-b-2 py-2 uppercase">Usuario</th>
-                                <th className="border-b-2 py-2 text-green-500 uppercase">Le deben</th>
-                                <th className="border-b-2 py-2 text-red-500 uppercase">Debe</th>
-                                <th className="border-b-2 py-2 text-gray-900 uppercase">Balance Neto</th>
+                                <th className="border-b-2 py-2 uppercase">{t("user")}</th>
+                                <th className="border-b-2 py-2 text-green-500 uppercase">{t("is_owed")}</th>
+                                <th className="border-b-2 py-2 text-red-500 uppercase">{t("owes")}</th>
+                                <th className="border-b-2 py-2 text-gray-900 uppercase">{t("net_balance")}</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -115,13 +119,13 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                             </tbody>
                         </table>
                     ) : (
-                        <p className="text-gray-500 text-center">Todavía no hay gastos para este grupo.</p>
+                        <p className="text-gray-500 text-center">{t("noExpenses")}.</p>
                     )}
                 </div>
 
                 {/* Mis Bizums */}
                 <div className="mb-6">
-                    <h3 className="text-xl font-semibold mb-4 text-blue-600">Mis Bizums</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-blue-600">{t("my_bizums")}</h3>
                     {userDebts.length > 0 ? (
                         <ul className="space-y-2">
                             {userDebts.map((bizum, index) => (
@@ -131,18 +135,18 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                                             <span className="font-semibold">
                                                 {bizum.payer_user.name} {bizum.payer_user.surname}
                                             </span>{" "}
-                                            te debe{" "}
+                                            {t("owes")}{" "}
                                             <span className="text-green-600">
                                                 {bizum.amount.toFixed(2)} {currencySymbol}
                                             </span>
                                         </p>
                                     ) : (
                                         <p>
-                                            Debes{" "}
+                                            {t("you_owe")}{" "}
                                             <span className="text-red-600">
                                                 {bizum.amount.toFixed(2)} {currencySymbol}
                                             </span>{" "}
-                                            a{" "}
+                                            {t("to")}{" "}
                                             <span className="font-semibold">
                                                 {bizum.loan_user.name} {bizum.loan_user.surname}
                                             </span>
@@ -152,13 +156,13 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p className="text-gray-500 text-center">No tienes acciones pendientes.</p>
+                        <p className="text-gray-500 text-center">{t("no_more_pending_actions")}.</p>
                     )}
                 </div>
 
                 {/* Otras Bizums */}
                 <div className="mb-6">
-                    <h3 className="text-xl font-semibold mb-4 text-blue-600">Otros Bizums</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-blue-600">{t("other_bizums")}</h3>
                     {otherDebts.length > 0 ? (
                         <ul className="space-y-2">
                             {otherDebts.map((bizum, index) => (
@@ -167,11 +171,11 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                                         <span className="font-semibold">
                                             {bizum.payer_user.name} {bizum.payer_user.surname}
                                         </span>{" "}
-                                        le debe{" "}
+                                        {t("owes")}{" "}
                                         <span className="text-red-600">
                                             {bizum.amount.toFixed(2)} {currencySymbol}
                                         </span>{" "}
-                                        a{" "}
+                                        {t("to")}{" "}
                                         <span className="font-semibold">
                                             {bizum.loan_user.name} {bizum.loan_user.surname}
                                         </span>
@@ -180,7 +184,7 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p className="text-gray-500 text-center">No hay más acciones pendientes.</p>
+                        <p className="text-gray-500 text-center">{t("no_more_pending_actions")}</p>
                     )}
                 </div>
 
@@ -190,7 +194,7 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                         onClick={onClose}
                         className="px-4 py-2 text-sm font-medium text-white bg-sky-500 hover:bg-cyan-700 rounded-lg"
                     >
-                        Cerrar
+                        {t("close")}
                     </button>
                 </div>
             </div>

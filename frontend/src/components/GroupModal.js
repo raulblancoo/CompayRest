@@ -82,8 +82,10 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
 
         // Validar lista de emails
 
-
-         if (existingEmails.includes(emailInput)) {
+        if(existingEmails.length < 1){
+            validationErrors.push(t("email_required"));
+        }
+        else if (existingEmails.includes(emailInput)) {
             validationErrors.push(t("email_already_added"));
         } else if (emailInput === user.email) {
             validationErrors.push(t("email_cannot_add_self"));
