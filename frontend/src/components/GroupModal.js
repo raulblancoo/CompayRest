@@ -76,9 +76,9 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
 
         // Validar nombre del grupo
         if (!groupName.trim()) validationErrors.push(t("group_name_required"));
-        if (groupName.length > 20) validationErrors.push(t("group_name_max_length"));
-        if (userGroups.includes(groupName)) validationErrors.push(t("group_name_exists"));
-        if (!regexGroupName.test(groupName)) validationErrors.push(t("group_name_invalid_characters"));
+        else if (groupName.length > 20) validationErrors.push(t("group_name_max_length"));
+        else if (userGroups.includes(groupName)) validationErrors.push(t("group_name_exists"));
+        else if (!regexGroupName.test(groupName)) validationErrors.push(t("group_name_invalid_characters"));
 
         // Validar lista de emails
 

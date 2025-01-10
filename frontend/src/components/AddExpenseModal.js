@@ -81,16 +81,21 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         const totalAmount = parseFloat(amount);
 
         // Validar monto positivo
-        if (!totalAmount || totalAmount <= 0) {
+        if (!totalAmount ) {
+            validationErrors.push(t("amount_empty"));
+        }else if(totalAmount <= 0){
             validationErrors.push(t("amount_positive_error"));
         }
-        if (!regexDecimales.test(amount)){
+        else if (!regexDecimales.test(amount)){
             validationErrors.push(t("bad_decimal"));
         }
 
         // Validaciones
-        if (!expenseName || expenseName.length > 30) {
+        if (!expenseName) {
             validationErrors.push(t("exName_error"));
+        }else if(expenseName.length > 30){
+            validationErrors.push(t("exName_toolong"));
+
         }
 
         if (shareMethod === "PARTESIGUALES") {
@@ -165,7 +170,6 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                             onChange={(e) => setSelectedPayer(e.target.value)}
                             className="w-full border border-gray-300 rounded-md p-2 mt-1"
                         >
-                            <option value="">{t("select_member")}</option>
                             {members.map((member) => (
                                 <option key={member.id} value={member.id}>
                                     {member.name} {member.surname}

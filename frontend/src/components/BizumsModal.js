@@ -156,7 +156,7 @@ const BizumsModal = ({ isOpen, onClose, bizums, members, currency }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p className="text-gray-500 text-center">{t("no_more_pending_actions")}.</p>
+                        <p className="text-gray-500 text-center">{t("no_more_pending_actions")}</p>
                     )}
                 </div>
 
