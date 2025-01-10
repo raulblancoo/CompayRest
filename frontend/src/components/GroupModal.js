@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import axiosInstance from "./axiosInstance"; // Importa las validaciones
 
-const GroupModal = ({ isOpen, onClose, onSubmit }) => {
+const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
     const { t } = useTranslation();
     const [groupName, setGroupName] = useState("");
     const [currency, setCurrency] = useState("EUR");
@@ -111,7 +111,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
 
         console.log("Data enviada:", data);
         onSubmit(data);
-        handleClose();
+        //handleClose();
     };
 
     const handleClose = () => {
@@ -134,6 +134,9 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
     }, [isOpen]);
 
     if (!isOpen) return null;
+
+    const combinedErrors = [...errors, ...(error ? [error] : [])];
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -214,22 +217,23 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
                     </div>
                 </form>
 
-                {errors.length > 0 && (
+                {combinedErrors.length > 0 && (
                     <div
                         id="divErrores"
-                        className="flex p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50  dark:text-red-400"
+                        className="flex p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:text-red-400"
                         role="alert"
                     >
                         <div>
                             <p className="font-medium">Errores:</p>
                             <ul className="mt-1.5 list-disc list-inside pl-5">
-                                {errors.map((error, index) => (
-                                    <li key={index}>{error}</li>
+                                {combinedErrors.map((errMsg, index) => (
+                                    <li key={index}>{errMsg}</li>
                                 ))}
                             </ul>
                         </div>
                     </div>
                 )}
+
 
 
 

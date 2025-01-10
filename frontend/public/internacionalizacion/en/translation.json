@@ -90,6 +90,8 @@
   "error_adding_members": "Error adding members:",
   "error_adding_members_alert": "Error adding members. Please check the emails and try again.",
   "editMember": "Edit Member",
+  "error_back_concreto": "There has been a mistake with the following emails: ",
+  "error_back_generico": "There has been a mistake, check ur data please!. ",
   "errorFetchingExpenses": "Error fetching expenses",
   "noExpenses": "No expenses in this group.",
   "deleteMember": "Delete Member",

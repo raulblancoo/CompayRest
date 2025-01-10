@@ -37,7 +37,7 @@ const GroupCard = ({ group }) => {
             <div className="px-5 py-3">
                 <h3 className="text-gray-700 uppercase">{group.group_name}</h3>
                 <span className="text-slate-600 mt-2">
-                    {group.amount}{" "}
+                    {group.amount.toFixed(2)}{" "}
                     {group.currency === "EURO" ? "€" : group.currency === "DOLAR" ? "$" : group.currency}
                 </span>
             </div>

@@ -65,12 +65,15 @@ export function Groups() {
             setGroups((prevGroups) => [...prevGroups, response.data]);
             setIsModalOpen(false); // Cierra la modal después de crear el grupo
             setCreateGroupError(null); // Limpiar errores previos
+            setIsModalOpen(false); // Cierra la modal después de crear el grupo
         } catch (err) {
-            console.error(t("error_creating_group"), err);
             if (err.response && err.response.data) {
-                setCreateGroupError(err.response.data); // Establecer mensaje de error del backend
+
+                setCreateGroupError(t("error_back_concreto") + String(err.response.data).match(/\[([^\]]+)\]/)?.[1]); // Mensaje genérico
+
             } else {
-                setCreateGroupError("Error al crear el grupo"); // Mensaje genérico
+                setCreateGroupError("error_back_generico"); // Mensaje genérico
+
             }
         }
     };
