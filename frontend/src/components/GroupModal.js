@@ -1,26 +1,38 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-    validateGroupName,
-    validateEmail,
-    validateCurrency,
-    validateEmailList,
-} from "./validaciones/groupsFormValidaciones"; // Importa las validaciones
+
+import axiosInstance from "./axiosInstance"; // Importa las validaciones
 
 const GroupModal = ({ isOpen, onClose, onSubmit }) => {
     const { t } = useTranslation();
     const [groupName, setGroupName] = useState("");
     const [currency, setCurrency] = useState("EUR");
     const [emails, setEmails] = useState([]);
-
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const [emailInput, setEmailInput] = useState("");
     const [errors, setErrors] = useState([]);
+    const [user, setUser] = useState({});
+
+    const getUser = async () => {
+        try {
+            const response = await axiosInstance.get(`/users/me`);
+            if (response.status === 204) {
+                setUser({});
+            } else {
+                setUser(response.data);
+            }
+        } catch (error) {
+            console.error(t("errorFetchingUser"), error);
+        }
+    };
+
+    useEffect(() => {
+        getUser();
+    }, []);
 
     const handleAddEmail = () => {
-        const userEmail = "example@user.com"; // Reemplaza esto con el correo del usuario autenticado
-        const userGroups = ["Grupo1", "Grupo2"]; // Reemplaza con los grupos del usuario
-        const allowedCurrencies = ["EUR", "USD", "GBP"];
+
         const existingEmails = emails;
 
         // Validar todos los campos del formulario
@@ -28,8 +40,15 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
 
 
         // Validar el nuevo email
-        validationErrors.push(...validateEmail(emailInput, existingEmails, userEmail, "sp"));
-
+        if (!emailInput.trim()) {
+            validationErrors.push(t("email_required"));
+        } else if (!emailRegex.test(emailInput)) {
+            validationErrors.push(t("email_invalid_format"));
+        } else if (existingEmails.includes(emailInput)) {
+            validationErrors.push(t("email_already_added"));
+        } else if (emailInput === user.email) {
+            validationErrors.push(t("email_cannot_add_self"));
+        }
         // Si hay errores, mostrarlos y detener el flujo
         if (validationErrors.length > 0) {
             setErrors(validationErrors);
@@ -47,18 +66,34 @@ const GroupModal = ({ isOpen, onClose, onSubmit }) => {
     };
 
     const handleSubmit = () => {
+        const existingEmails = emails;
+
         const userGroups = ["Grupo1", "Grupo2"]; // Reemplaza con los grupos del usuario
         const allowedCurrencies = ["EUR", "USD", "GBP"];
         const validationErrors = [];
+        const regexGroupName = /^[\x20\x21-\xA8\xAD\xE0-\xED]*$/;
+
 
         // Validar nombre del grupo
-        validationErrors.push(...validateGroupName(groupName, userGroups, "sp"));
+        if (!groupName.trim()) validationErrors.push(t("group_name_required"));
+        if (groupName.length > 20) validationErrors.push(t("group_name_max_length"));
+        if (userGroups.includes(groupName)) validationErrors.push(t("group_name_exists"));
+        if (!regexGroupName.test(groupName)) validationErrors.push(t("group_name_invalid_characters"));
 
         // Validar lista de emails
-        validationErrors.push(...validateEmailList(emails, "sp"));
+
+
+         if (existingEmails.includes(emailInput)) {
+            validationErrors.push(t("email_already_added"));
+        } else if (emailInput === user.email) {
+            validationErrors.push(t("email_cannot_add_self"));
+        }
+
 
         // Validar moneda
-        validationErrors.push(...validateCurrency(currency, allowedCurrencies, "sp"));
+        if (!allowedCurrencies.includes(currency)) {
+            errors.push(t("currency_not_allowed"));
+        }
 
         if (validationErrors.length > 0) {
             setErrors(validationErrors);

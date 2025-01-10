@@ -80,44 +80,34 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         setShares({});
         setErrors({});
     };
+    const validateForm = () => {
+        const validationErrors = [];
+        const regexDecimales = /^\d+(\.\d{1,2})?$/; // Permite números enteros o hasta dos decimales
+        const totalAmount = parseFloat(amount);
 
         // Validar monto positivo
-        if (parseFloat(amount) <= 0) {
-            validationErrors.push(getErrorMessage("amountZero", "sp"));
+        if (!totalAmount || totalAmount <= 0) {
+            validationErrors.push(t("amount_positive_error"));
+        }
+        if (!regexDecimales.test(amount)){
+            validationErrors.push(t("bad_decimal"));
         }
 
-
-        // Validaciones
+        // Validar nombre del gasto
         if (!expenseName || expenseName.length > 30) {
-            newErrors.expenseName = "El nombre del gasto no puede tener más de 30 caracteres.";
-        }
-        if (isNaN(totalAmount) || totalAmount <= 0) {
-            newErrors.amount = "La cantidad del pago debe ser positiva.";
+            validationErrors.push(t("exName_error"));
         }
 
-        let finalShares = {};
-        if (shareMethod === "PARTESIGUALES") {
-            const equalShare = totalAmount / selectedMembers.length;
-            finalShares = selectedMembers.reduce((acc, email) => {
-                acc[email] = parseFloat(equalShare.toFixed(2));
-                return acc;
-            }, {});
-        } else if (shareMethod === "PARTESDESIGUALES") {
+        // Validar distribución (si aplica)
+        if (shareMethod === "PARTESDESIGUALES") {
             const totalShares = Object.values(shares).reduce((sum, share) => sum + share, 0);
             if (totalShares !== totalAmount) {
-                newErrors.shares = "La suma de la distribución debe coincidir con la cantidad total.";
-            } else {
-                finalShares = { ...shares };
+                validationErrors.push(t("shares_sum_error"));
             }
         } else if (shareMethod === "PORCENTAJES") {
             const totalPercentage = Object.values(shares).reduce((sum, percentage) => sum + percentage, 0);
             if (totalPercentage !== 100) {
-                newErrors.shares = "La suma de los porcentajes debe ser igual a 100.";
-            } else {
-                finalShares = selectedMembers.reduce((acc, email) => {
-                    acc[email] = parseFloat(((totalAmount * shares[email]) / 100).toFixed(2));
-                    return acc;
-                }, {});
+                validationErrors.push(t("percentages_sum_error"));
             }
         }
 
@@ -130,6 +120,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         setErrors(validationErrors);
         return validationErrors.length === 0; // Retorna true si no hay errores
     };
+
 
     const handleSubmit = () => {
         if (!validateForm()) return; // Detenemos el envío si hay errores
