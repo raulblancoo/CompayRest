@@ -74,10 +74,16 @@ public class GroupServiceImpl implements GroupService {
         Optional<GroupModel> group = groupRepository.findById(groupId);
 
         if(group.isPresent()) {
-            System.out.println(amount);
-            System.out.println(group.get().getAmount());
             group.get().setAmount(group.get().getAmount() + amount);
-            System.out.println(group.get().getAmount());
+            groupRepository.save(group.get());
+        }
+    }
+
+    @Override
+    public void editGroupAmount(Long groupId, double previousAmount, double newAmount) {
+        Optional<GroupModel> group = groupRepository.findById(groupId);
+        if(group.isPresent()) {
+            group.get().setAmount(group.get().getAmount() + newAmount - previousAmount);
             groupRepository.save(group.get());
         }
     }

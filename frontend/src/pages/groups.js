@@ -11,7 +11,7 @@ export function Groups() {
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [userId, setUserId] = useState(null); // Estado para almacenar el userId
-  const [createGroupError, setCreateGroupError] = useState(null); // Estado para errores al crear grupos
+    const [createGroupError, setCreateGroupError] = useState(null); // Estado para errores al crear grupos
 
     // Obtener el userId desde el backend
     useEffect(() => {

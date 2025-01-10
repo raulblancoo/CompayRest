@@ -15,4 +15,5 @@ public interface GroupService {
     List<GroupDto> getAllGroups();
     Optional<GroupDto> getGroupById(Long groupId);
     void updateGroupAmount(Long groupId, double amount);
+    void editGroupAmount(Long groupId, double previousAmount, double newAmount);
 }

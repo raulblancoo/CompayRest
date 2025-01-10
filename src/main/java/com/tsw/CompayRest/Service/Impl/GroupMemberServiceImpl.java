@@ -84,4 +84,9 @@ public class GroupMemberServiceImpl implements GroupMemberService {
 
         return groups;
     }
+
+    @Override
+    public boolean isGroupMember(Long groupId, Long memberId) {
+        return groupMemberRepository.existsByGroupIdAndUserId(groupId, memberId);
+    }
 }

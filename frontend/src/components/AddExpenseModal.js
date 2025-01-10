@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "../components/axiosInstance";
 import { useTranslation } from "react-i18next"; // Importar useTranslation
-import { getUserIdFromToken } from "./AuthUtils";
-
-
 
 const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const { t } = useTranslation(); // Inicializar useTranslation
@@ -75,6 +72,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         setShares({});
         setErrors({});
     };
+
     const validateForm = () => {
         const validationErrors = [];
         const regexDecimales = /^\d+(\.\d{1,2})?$/; // Permite números enteros o hasta dos decimales
@@ -146,12 +144,13 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
 
         // Enviar los datos al backend
         onSubmit(data);
-
+        resetForm();
         onClose();
     };
 
     const handleClose = () => {
         setErrors({});
+        resetForm();
         onClose();
     };
 

@@ -192,7 +192,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
                             <button
                                 type="button"
                                 onClick={handleAddEmail}
-                                className="bg-blue-600 text-white px-3 py-2 rounded-md"
+                                className="bg-sky-500 hover:bg-cyan-700 text-white px-4 py-2 rounded-md"
                             >
                                 {t("add")}
                             </button>
@@ -248,7 +248,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
                     </button>
                     <button
                         onClick={handleSubmit}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                        className="bg-sky-500 hover:bg-cyan-700 text-white px-4 py-2 rounded-md"
                     >
                         {t("submit")}
                     </button>

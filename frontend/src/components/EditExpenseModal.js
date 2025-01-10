@@ -13,6 +13,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
     const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
     const [shares, setShares] = useState({});
     const [errors, setErrors] = useState({});
+    let finalShares = {};
 
     useEffect(() => {
         if (!expense || !expense.id || !groupId) return;
@@ -34,7 +35,11 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
 
                 // Extract emails and shares
                 const fetchedShares = expenseData.shares.reduce((acc, share) => {
-                    acc[share.destiny_user.email] = share.assignedAmount || 0;
+                    if(expenseData.share_method === "PORCENTAJES") {
+                        acc[share.destiny_user.email] = Math.ceil((share.assignedAmount * 100) / expenseData.amount) || 0;
+                    } else {
+                        acc[share.destiny_user.email] = share.assignedAmount || 0;
+                    }
                     return acc;
                 }, {});
 
@@ -81,47 +86,75 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
         }));
     };
 
-    const handleSubmit = async () => {
+    const validateForm = () => {
+        const validationErrors = [];
+        const regexDecimales = /^\d+(\.\d{1,2})?$/; // Permite números enteros o hasta dos decimales
         const totalAmount = parseFloat(amount);
-        const newErrors = {};
 
-        // Validar nombre del gasto
-        if (!expenseName || expenseName.trim().length === 0 || expenseName.length > 30) {
-            newErrors.expenseName = "El nombre del gasto no puede estar vacío ni tener más de 30 caracteres.";
+        // Validar monto positivo
+        if (!totalAmount ) {
+            validationErrors.push(t("amount_empty"));
+        }else if(totalAmount <= 0){
+            validationErrors.push(t("amount_positive_error"));
+        }
+        else if (!regexDecimales.test(amount)){
+            validationErrors.push(t("bad_decimal"));
         }
 
-        // Validar cantidad positiva
-        if (isNaN(totalAmount) || totalAmount <= 0) {
-            newErrors.amount = "La cantidad del pago debe ser un número positivo.";
+        // Validaciones
+        if (!expenseName) {
+            validationErrors.push(t("exName_error"));
+        }else if(expenseName.length > 30){
+            validationErrors.push(t("exName_toolong"));
+
         }
 
-        // Validar shares
-        if (shareMethod === "PARTESDESIGUALES") {
-            const totalShares = selectedMembers.reduce((sum, email) => sum + (shares[email] || 0), 0);
+        if (shareMethod === "PARTESIGUALES") {
+            const equalShare = totalAmount / selectedMembers.length;
+            finalShares = selectedMembers.reduce((acc, email) => {
+                acc[email] = parseFloat(equalShare.toFixed(2));
+                return acc;
+            }, {});
+        } else if (shareMethod === "PARTESDESIGUALES") {
+            const totalShares = Object.values(shares).reduce((sum, share) => sum + share, 0);
             if (totalShares !== totalAmount) {
-                newErrors.shares = "La suma de la distribución debe coincidir con la cantidad total.";
+                validationErrors.push(t("shares_sum_error"));
+            }else {
+                finalShares = { ...shares };
             }
         } else if (shareMethod === "PORCENTAJES") {
-            const totalPercentage = selectedMembers.reduce((sum, email) => sum + (shares[email] || 0), 0);
+            const totalPercentage = Object.values(shares).reduce((sum, percentage) => sum + percentage, 0);
             if (totalPercentage !== 100) {
-                newErrors.shares = "La suma de los porcentajes debe ser igual a 100.";
+                validationErrors.push(t("percentages_sum_error"));
+            }else {
+                finalShares = selectedMembers.reduce((acc, email) => {
+                    acc[email] = parseFloat(((totalAmount * shares[email]) / 100).toFixed(2));
+                    return acc;
+                }, {});
             }
         }
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
+        console.log(finalShares)
+
+        setErrors(validationErrors);
+        return validationErrors.length === 0; // Retorna true si no hay errores
+    };
+
+    const handleSubmit = async () => {
+
+        if(!validateForm()) return;
+
+        const totalAmount = parseFloat(amount);
 
         const updatedExpense = {
             ...expense,
             amount: totalAmount,
             expense_name: expenseName,
             share_method: shareMethod,
-            origin_user: { id: selectedPayer }, // Correct assignment of payer
+            origin_user: { id: selectedPayer },
             shares: selectedMembers.map(email => ({
                 destiny_user: { email },
-                assignedAmount: shares[email] || 0,
+                assignedAmount: finalShares[email],
             })),
             group: { id: groupId },
             expense_date: new Date().toISOString(),
@@ -129,7 +162,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
 
         try {
             const response = await axiosInstance.put(
-                `/user/groups/${groupId}/expenses/${expense.id}`,
+                `/users/groups/${groupId}/expenses/${expense.id}`,
                 updatedExpense
             );
             onSubmit(response.data);
@@ -184,7 +217,6 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                             onChange={(e) => setExpenseName(e.target.value)}
                             className={`w-full border ${errors.expenseName ? "border-red-500" : "border-gray-300"} rounded-md p-2`}
                         />
-                        {errors.expenseName && <p className="text-red-500 text-sm mt-1">{errors.expenseName}</p>}
                     </div>
 
                     <div className="mb-4">
@@ -195,7 +227,6 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                             onChange={(e) => setAmount(e.target.value)}
                             className={`w-full border ${errors.amount ? "border-red-500" : "border-gray-300"} rounded-md p-2`}
                         />
-                        {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
                     </div>
 
                     <div className="mb-4">
@@ -230,7 +261,23 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                                     </div>
                                 );
                             })}
-                            {errors.shares && <p className="text-red-500 text-sm mt-1">{errors.shares}</p>}
+                        </div>
+                    )}
+
+                    {errors.length > 0 && (
+                        <div
+                            id="divErrores"
+                            className="flex p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:text-red-400"
+                            role="alert"
+                        >
+                            <div>
+                                <p className="font-medium">{t("errors")}</p>
+                                <ul className="mt-1.5 list-disc list-inside pl-5">
+                                    {errors.map((error, index) => (
+                                        <li key={index}>{error}</li>
+                                    ))}
+                                </ul>
+                            </div>
                         </div>
                     )}
 
