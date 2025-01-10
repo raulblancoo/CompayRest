@@ -63,16 +63,14 @@ public class GroupController {
     }
 
   
-  /*public ResponseEntity<GroupDto> createGroup(HttpServletRequest request, @RequestBody NewGroupDto group) {
+    @PostMapping
+    public ResponseEntity<?> createGroup(HttpServletRequest request, @RequestBody NewGroupDto group) {
         Long userId = (Long) request.getAttribute("userId");
 
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // HTTP 401
-        }*/
-  
-    @PostMapping
-    public ResponseEntity<?> createGroup(@PathVariable("userId") Long userId, @RequestBody NewGroupDto group) {
-        // Obtener el usuario que está creando el grupo
+        }
+
         Optional<UserDto> user = userService.getUserById(userId);
 
         if (user.isEmpty()) {

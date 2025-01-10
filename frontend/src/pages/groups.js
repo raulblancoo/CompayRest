@@ -31,6 +31,7 @@ export function Groups() {
     useEffect(() => {
         const fetchGroups = async () => {
             setError(null); // Limpia el estado de error antes de la llamada
+
             if (!userId) {
                 setError(t("no_user_error"));
                 setLoading(false);

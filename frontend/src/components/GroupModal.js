@@ -1,10 +1,8 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-    
 const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
-  const { t } = useTranslation();
+    const { t } = useTranslation();
     const [groupName, setGroupName] = useState("");
     const [currency, setCurrency] = useState("EUR");
     const [emails, setEmails] = useState([]);
@@ -62,7 +60,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
                         {error}
                     </div>
                 )}
-                
+
                 <form>
                     <div className="mb-4">
                         <label htmlFor="groupName" className="block text-sm font-medium text-gray-700">
