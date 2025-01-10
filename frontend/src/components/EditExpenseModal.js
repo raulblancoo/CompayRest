@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "./axiosInstance";
+import { useTranslation } from "react-i18next";
+
 
 const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
+    const { t } = useTranslation();
     const [members, setMembers] = useState([]);
     const [selectedPayer, setSelectedPayer] = useState("");
     const [selectedMembers, setSelectedMembers] = useState([]);
@@ -141,10 +144,10 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
             <div className="bg-white rounded-lg shadow-lg w-96 p-6">
-                <h2 className="text-xl font-semibold mb-4">Editar Gasto</h2>
+                <h2 className="text-xl font-semibold mb-4">{t("expense_edit")}</h2>
                 <form>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Pagador</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("payer")}</label>
                         <select
                             value={selectedPayer}
                             onChange={(e) => setSelectedPayer(e.target.value)}
@@ -159,7 +162,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Miembros</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("group_members")}</label>
                         {members.map((member) => (
                             <div key={member.email} className="flex items-center">
                                 <input
@@ -174,7 +177,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("expense_name")}</label>
                         <input
                             type="text"
                             value={expenseName}
@@ -185,7 +188,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Cantidad</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("total_amount")}</label>
                         <input
                             type="number"
                             value={amount}
@@ -196,15 +199,15 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Método de División</label>
+                        <label className="block text-sm font-medium text-gray-700">{t("share_method")}</label>
                         <select
                             value={shareMethod}
                             onChange={(e) => setShareMethod(e.target.value)}
                             className="w-full border border-gray-300 rounded-md p-2 mt-1"
                         >
-                            <option value="PARTESIGUALES">Partes Iguales</option>
-                            <option value="PARTESDESIGUALES">Partes Desiguales</option>
-                            <option value="PORCENTAJES">Porcentajes</option>
+                            <option value="PARTESIGUALES">{t("equal_shares")}</option>
+                            <option value="PARTESDESIGUALES">{t("unequal_shares")}</option>
+                            <option value="PORCENTAJES">{t("porcentages")}</option>
                         </select>
                     </div>
 

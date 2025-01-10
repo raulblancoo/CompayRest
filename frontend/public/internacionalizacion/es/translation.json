@@ -48,6 +48,7 @@
   "error_back_generico": "Ha habido un error con los correos. ",
   "create_new_expense": "Crear Nuevo Gasto",
   "select_member": "Selecciona un miembro",
+  "expense_edit": "Editar pago",
   "group_members": "Miembros del grupo",
   "expense_name": "Nombre del Gasto",
   "total_amount": "Cantidad total",
