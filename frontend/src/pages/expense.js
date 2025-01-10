@@ -217,13 +217,7 @@ export function Expense() {
                     onClose={() => setEditingExpense(null)}
                     groupId={idGroup}
                     expense={editingExpense}
-                    onSubmit={(updatedExpense) => {
-                        setExpenses((prevExpenses) =>
-                            prevExpenses.map((expense) =>
-                                expense.id === updatedExpense.id ? updatedExpense : expense
-                            )
-                        );
-                    }}
+                    onSubmit={handleEditExpense}
                 />
             )}
 
