@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users/{userId}/groups/{groupId}/bizums")
+@RequestMapping("/users/groups/{groupId}/bizums")
 public class BizumController {
 
     private final BizumService bizumService;

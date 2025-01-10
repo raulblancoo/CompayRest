@@ -8,6 +8,7 @@ import {
     sumDistribution,
 } from "./validaciones/expendValidaciones"; // Importamos las validaciones existentes
 
+
 const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const { t } = useTranslation(); // Inicializar useTranslation
     const [members, setMembers] = useState([]); // Lista de miembros del grupo
@@ -17,17 +18,33 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const [amount, setAmount] = useState("");
     const [shareMethod, setShareMethod] = useState("PARTESIGUALES");
     const [shares, setShares] = useState({});
-    const [errors, setErrors] = useState([]); // Lista de errores
+    const [errors, setErrors] = useState({});
+    const [userId, setUserId] = useState(null); // Añadido para almacenar el userId obtenido del backend;
 
-    const userId = getUserIdFromToken();
+    // Obtener el userId desde el backend
+    useEffect(() => {
+        const fetchUserId = async () => {
+            try {
+                const response = await axiosInstance.get("/users/me"); // Suponemos que este endpoint devuelve el usuario autenticado
+                setUserId(response.data.id); // Almacenamos el userId en el estado
+            } catch (error) {
+                console.error("Error al obtener el userId:", error);
+            }
+        };
+
+        fetchUserId();
+    }, []);
 
     useEffect(() => {
-        if (!groupId) return;
+        if (!groupId || !userId) return;
 
         const fetchMembers = async () => {
             try {
-                const response = await axiosInstance.get(`/users/${userId}/groups/${groupId}/members`);
-                setMembers(response.data);
+                const response = await axiosInstance.get(`/users/groups/${groupId}/members`);
+                const membersData = response.data;
+                setMembers(membersData);
+                setSelectedPayer(userId); // Usamos el userId del backend como el pagador predeterminado
+                setSelectedMembers(membersData.map((member) => member.email));
             } catch (error) {
                 console.error("Error fetching members:", error);
             }
@@ -42,48 +59,72 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         );
     };
 
+
     const validateForm = () => {
         const validationErrors = [];
+    };
+  
+    const handleShareChange = (email, value) => {
+        setShares((prev) => ({
+            ...prev,
+            [email]: parseFloat(value),
+        }));
+    };
+
+    const resetForm = () => {
+        setSelectedPayer(userId); // Restablecemos el pagador al userId del backend
+        setSelectedMembers(members.map((member) => member.email));
+        setExpenseName("");
+        setAmount("");
+        setShareMethod("PARTESIGUALES");
+        setShares({});
+        setErrors({});
+    };
 
         // Validar monto positivo
         if (parseFloat(amount) <= 0) {
             validationErrors.push(getErrorMessage("amountZero", "sp"));
         }
 
-        // Validar campos vacíos
-        if (
-            !selectedPayer ||
-            !amount ||
-            !expenseName ||
-            selectedMembers.length === 0 ||
-            !validateDistribution(Object.values(shares))
-        ) {
-            validationErrors.push(getErrorMessage("emptyFields", "sp"));
+
+        // Validaciones
+        if (!expenseName || expenseName.length > 30) {
+            newErrors.expenseName = "El nombre del gasto no puede tener más de 30 caracteres.";
+        }
+        if (isNaN(totalAmount) || totalAmount <= 0) {
+            newErrors.amount = "La cantidad del pago debe ser positiva.";
         }
 
-        // Validar método PARTESDESIGUALES
-        if (
-            shareMethod === "PARTESDESIGUALES" &&
-            sumDistribution(Object.values(shares)) !== parseFloat(amount)
-        ) {
-            validationErrors.push(getErrorMessage("distributionMismatch", "sp"));
+        let finalShares = {};
+        if (shareMethod === "PARTESIGUALES") {
+            const equalShare = totalAmount / selectedMembers.length;
+            finalShares = selectedMembers.reduce((acc, email) => {
+                acc[email] = parseFloat(equalShare.toFixed(2));
+                return acc;
+            }, {});
+        } else if (shareMethod === "PARTESDESIGUALES") {
+            const totalShares = Object.values(shares).reduce((sum, share) => sum + share, 0);
+            if (totalShares !== totalAmount) {
+                newErrors.shares = "La suma de la distribución debe coincidir con la cantidad total.";
+            } else {
+                finalShares = { ...shares };
+            }
+        } else if (shareMethod === "PORCENTAJES") {
+            const totalPercentage = Object.values(shares).reduce((sum, percentage) => sum + percentage, 0);
+            if (totalPercentage !== 100) {
+                newErrors.shares = "La suma de los porcentajes debe ser igual a 100.";
+            } else {
+                finalShares = selectedMembers.reduce((acc, email) => {
+                    acc[email] = parseFloat(((totalAmount * shares[email]) / 100).toFixed(2));
+                    return acc;
+                }, {});
+            }
         }
 
-        // Validar método PORCENTAJES
-        if (
-            shareMethod === "PORCENTAJES" &&
-            sumDistribution(Object.values(shares)) !== 100
-        ) {
-            validationErrors.push(getErrorMessage("percentMismatch", "sp"));
-        }
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
 
-        // Validar método de división
-        if (
-            !["PARTESIGUALES", "PARTESDESIGUALES", "PORCENTAJES"].includes(
-                shareMethod
-            )
-        ) {
-            validationErrors.push(getErrorMessage("invalidDivision", "sp"));
         }
 
         setErrors(validationErrors);

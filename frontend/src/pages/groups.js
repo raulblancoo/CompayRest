@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import GroupList from "../components/GroupList";
 import axiosInstance from "../components/axiosInstance";
 import GroupModal from "../components/GroupModal";
-import { getUserIdFromToken } from "../components/AuthUtils";
 import { useTranslation } from "react-i18next";
 
 export function Groups() {
@@ -11,11 +10,27 @@ export function Groups() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [userId, setUserId] = useState(null); // Estado para almacenar el userId
 
-    const userId = getUserIdFromToken();
+    // Obtener el userId desde el backend
+    useEffect(() => {
+        const fetchUserId = async () => {
+            try {
+                const response = await axiosInstance.get("/users/me"); // Suponemos que este endpoint devuelve el usuario autenticado
+                setUserId(response.data.id); // Almacenamos el userId en el estado
+            } catch (err) {
+                console.error(t("errorFetchingUserId"), err);
+                setError(t("errorFetchingUserId"));
+                setLoading(false);
+            }
+        };
+
+        fetchUserId();
+    }, [t]);
 
     useEffect(() => {
         const fetchGroups = async () => {
+            setError(null); // Limpia el estado de error antes de la llamada
             if (!userId) {
                 setError(t("no_user_error"));
                 setLoading(false);
@@ -23,25 +38,26 @@ export function Groups() {
             }
 
             try {
-                const response = await axiosInstance.get(`/users/${userId}/groups`);
+                const response = await axiosInstance.get(`/users/groups`);
                 setGroups(response.data);
-                setLoading(false);
             } catch (err) {
                 console.error(t("error_fetching_groups"), err);
                 setError(t("error_fetching_groups"));
+            } finally {
                 setLoading(false);
             }
         };
 
         fetchGroups();
-    }, [userId]);
+    }, [userId, t]);
+
 
     const handleOpenModal = () => setIsModalOpen(true);
     const handleCloseModal = () => setIsModalOpen(false);
 
     const handleCreateGroup = async (newGroup) => {
         try {
-            const response = await axiosInstance.post(`/users/${userId}/groups`, newGroup);
+            const response = await axiosInstance.post(`/users/groups`, newGroup);
             setGroups((prevGroups) => [...prevGroups, response.data]);
             setIsModalOpen(false);
         } catch (err) {

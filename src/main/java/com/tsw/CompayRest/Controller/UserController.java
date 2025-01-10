@@ -2,6 +2,7 @@ package com.tsw.CompayRest.Controller;
 
 import com.tsw.CompayRest.Dto.UserDto;
 import com.tsw.CompayRest.Service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,12 +14,11 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    // TODO-GENERAL: queremos devolver los Dtos o los códigos HTTP correspondientes a la consulta?
-
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
+    // Obtener todos los usuarios
     @GetMapping
     public ResponseEntity<List<UserDto>> getAllUsers() {
         List<UserDto> users = userService.getAllUsers();
@@ -28,46 +28,65 @@ public class UserController {
         return ResponseEntity.ok(users); // HTTP 200
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
+    // Obtener el usuario autenticado
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getUserById(HttpServletRequest request) {
+        Long id = (Long) request.getAttribute("userId");
+
+        if (id == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // HTTP 401
+        }
+
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // Crear un usuario
     @PostMapping
     public ResponseEntity<UserDto> createUser(@RequestBody UserDto user) {
-        // TODO: validar si se permiten duplicados por email
-        // TODO: setear correctamente la imagen de perfil
         UserDto createdUser = userService.saveUser(user);
-        return ResponseEntity.status(201).body(createdUser); // HTTP 201
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser); // HTTP 201
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserDto updatedUser) {
-        // TODO: comprobar si cada vez que queremos actualizar un usuario queremos pasarle todos los campos o solo los que queramos cambiar
+    // Actualizar el usuario autenticado
+    @PutMapping
+    public ResponseEntity<UserDto> updateUser(HttpServletRequest request, @RequestBody UserDto updatedUser) {
+        Long id = (Long) request.getAttribute("userId");
+
+        if (id == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // HTTP 401
+        }
+
         return userService.updateUser(id, updatedUser)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        // TODO: mirar si la respuesta debería ser solo los códigos (Imagino que si)
+    // Eliminar el usuario autenticado
+    @DeleteMapping
+    public ResponseEntity<Void> deleteUser(HttpServletRequest request) {
+        Long id = (Long) request.getAttribute("userId");
+
+        if (id == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // HTTP 401
+        }
+
         boolean deleted = userService.deleteUser(id);
         if (deleted) {
             return ResponseEntity.noContent().build(); // HTTP 204
         } else {
-            return ResponseEntity.notFound().build();  // HTTP 404
+            return ResponseEntity.notFound().build(); // HTTP 404
         }
     }
 
+    // Login de usuario
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody UserDto loginRequest, HttpSession session) {
-        try{
+        try {
             boolean isAuthenticated = userService.getUserByEmail(loginRequest.getEmail()).isPresent();
 
-            if (isAuthenticated){
+            if (isAuthenticated) {
                 session.setAttribute("user", loginRequest.getUsername());
                 return ResponseEntity.ok("Login was successful!");
             } else {

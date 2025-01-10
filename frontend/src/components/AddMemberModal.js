@@ -8,15 +8,28 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
     const [emails, setEmails] = useState([]);
     const [currentEmail, setCurrentEmail] = useState('');
     const [members, setMembers] = useState(groupMembers || []);
+    const [userId, setUserId] = useState(null); // Estado para almacenar el userId
 
-    const userId = getUserIdFromToken();
 
     useEffect(() => {
-        // Fetch members if not passed as prop
+        const fetchUserId = async () => {
+            try {
+                const response = await axiosInstance.get("/users/me"); // Suponemos que este endpoint devuelve el usuario autenticado
+                setUserId(response.data.id); // Almacenamos el userId en el estado
+            } catch (error) {
+                console.error("Error al obtener el userId:", error);
+            }
+        };
+
+        fetchUserId();
+    }, []);
+
+    useEffect(() => {
+        // Fetch members si no se pasan como prop
         if (!groupMembers) {
             const fetchMembers = async () => {
                 try {
-                    const response = await axiosInstance.get(`/users/${userId}/groups/${idGroup}/members`);
+                    const response = await axiosInstance.get(`/users/groups/${idGroup}/members`);
                     setMembers(response.data);
                 } catch (error) {
                     console.error(t('error_loading_members'), error);
@@ -25,6 +38,8 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
             fetchMembers();
         }
     }, [groupMembers, idGroup, userId, t]);
+
+
 
     const handleAddEmail = () => {
         if (currentEmail && !emails.includes(currentEmail)) {
@@ -40,6 +55,7 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
     const handleSubmit = async () => {
         try {
             await axiosInstance.post(`/users/${userId}/groups/${idGroup}/members/email`, emails);
+
             onMembersAdded(); // Notificar al padre que se han añadido miembros
             onClose(); // Cerrar el modal
         } catch (error) {
@@ -47,6 +63,7 @@ const AddMemberModal = ({ onClose, idGroup, groupMembers, onMembersAdded }) => {
             alert(t('error_adding_members_alert'));
         }
     };
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">

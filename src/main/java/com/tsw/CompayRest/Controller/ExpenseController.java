@@ -5,6 +5,7 @@ import com.tsw.CompayRest.Service.ExpenseService;
 import com.tsw.CompayRest.Service.ExpenseShareService;
 import com.tsw.CompayRest.Service.GroupService;
 import com.tsw.CompayRest.Service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
-@RequestMapping("/users/{userId}/groups/{groupId}/expenses")
+@RequestMapping("/users/groups/{groupId}/expenses")
 public class ExpenseController {
     private final ExpenseService expenseService;
     private final GroupService groupService;
@@ -28,7 +29,8 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ExpenseDto>> getAllExpensesByGroupId(@PathVariable("userId") Long userId, @PathVariable("groupId") Long groupId) {
+    public ResponseEntity<List<ExpenseDto>> getAllExpensesByGroupId(@PathVariable("groupId") Long groupId) {
+
         List<ExpenseDto> expenses = expenseService.getAllExpensesByGroupId(groupId);
 
         if (expenses.isEmpty()) {

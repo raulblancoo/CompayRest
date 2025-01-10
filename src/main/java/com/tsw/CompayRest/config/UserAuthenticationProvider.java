@@ -50,16 +50,19 @@ public class UserAuthenticationProvider {
 
     public Authentication validateToken(String token) {
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
-
-        JWTVerifier verifier = JWT.require(algorithm)
-                .build();
+        JWTVerifier verifier = JWT.require(algorithm).build();
 
         DecodedJWT decoded = verifier.verify(token);
 
+        // Extraer campos importantes del token
+        String email = decoded.getSubject();
+        Long userId = decoded.getClaim("id").asLong(); // Extraer el 'id' del token
+
         UserDto user = UserDto.builder()
-                .email(decoded.getSubject())
-                .name(decoded.getClaim("firstName").asString())
-                .surname(decoded.getClaim("lastName").asString())
+                .email(email)
+                .id(userId) // Agregamos el id al DTO
+                .name(decoded.getClaim("name").asString())
+                .surname(decoded.getClaim("surname").asString())
                 .build();
 
         return new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
