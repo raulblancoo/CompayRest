@@ -15,4 +15,5 @@ public interface GroupMemberService {
     GroupMemberDto getGroupMember(Long groupId, Long memberId);
     List<UserDto> getAllGroupMembers(Long groupId);
     List<GroupDto> getGroupsByUserId(Long userId);
+    boolean isGroupMember(Long groupId, Long memberId);
 }
