@@ -63,7 +63,6 @@ export function Groups() {
         try {
             const response = await axiosInstance.post(`/users/groups`, newGroup);
             setGroups((prevGroups) => [...prevGroups, response.data]);
-            setIsModalOpen(false); // Cierra la modal después de crear el grupo
             setCreateGroupError(null); // Limpiar errores previos
             setIsModalOpen(false); // Cierra la modal después de crear el grupo
         } catch (err) {
