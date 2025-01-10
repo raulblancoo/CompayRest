@@ -38,7 +38,6 @@ const Navbar = () => {
         getUser();
     }, []);
 
-    // Cierra los dropdowns si se hace clic fuera
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
@@ -171,8 +170,6 @@ const Navbar = () => {
                                 </div>
                             )}
                         </div>
-
-                        {/* Avatar y Menú del Usuario */}
                         <div className="relative" ref={userDropdownRef}>
                             <img
                                 className="w-9 h-9 rounded-full cursor-pointer"
