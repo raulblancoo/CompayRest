@@ -20,7 +20,6 @@ export function Groups() {
                 const response = await axiosInstance.get("/users/me"); // Suponemos que este endpoint devuelve el usuario autenticado
                 setUserId(response.data.id); // Almacenamos el userId en el estado
             } catch (err) {
-                console.error(t("errorFetchingUserId"), err);
                 setError(t("errorFetchingUserId"));
                 setLoading(false);
             }
@@ -42,7 +41,6 @@ export function Groups() {
                 const response = await axiosInstance.get(`/users/groups`);
                 setGroups(response.data);
             } catch (err) {
-                console.error(t("error_fetching_groups"), err);
                 setError(t("error_fetching_groups"));
             } finally {
                 setLoading(false);

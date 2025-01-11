@@ -11,7 +11,6 @@ import java.util.List;
 public interface GroupMemberService {
     GroupMemberDto saveGroupMember(GroupDto groupDto, UserDto userDto);
     void saveGroupMember(GroupDto groupDto, String email);
-    boolean deleteGroupMember(Long groupId, UserDto userDto);
     GroupMemberDto getGroupMember(Long groupId, Long memberId);
     List<UserDto> getAllGroupMembers(Long groupId);
     List<GroupDto> getGroupsByUserId(Long userId);

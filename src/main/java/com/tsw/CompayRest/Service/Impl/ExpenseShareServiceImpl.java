@@ -2,7 +2,6 @@ package com.tsw.CompayRest.Service.Impl;
 
 import com.tsw.CompayRest.Dto.*;
 import com.tsw.CompayRest.Mapper.ExpenseShareMapper;
-import com.tsw.CompayRest.Repository.ExpenseRepository;
 import com.tsw.CompayRest.Repository.ExpenseShareRepository;
 import com.tsw.CompayRest.Service.ExpenseService;
 import com.tsw.CompayRest.Service.ExpenseShareService;

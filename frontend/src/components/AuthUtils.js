@@ -13,3 +13,5 @@ export const getUserIdFromToken = () => {
     }
     return null;
 };
+
+//TODO: Eliminar??

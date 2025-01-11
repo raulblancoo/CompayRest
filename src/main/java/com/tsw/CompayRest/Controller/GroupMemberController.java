@@ -6,14 +6,12 @@ import com.tsw.CompayRest.Dto.UserDto;
 import com.tsw.CompayRest.Service.GroupMemberService;
 import com.tsw.CompayRest.Service.GroupService;
 import com.tsw.CompayRest.Service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -51,7 +49,6 @@ public class GroupMemberController {
         return ResponseEntity.ok(member.getUser()); // HTTP 200
     }
 
-    // TODO: response de GroupMemberDto o UserDto?
     @PostMapping
     public ResponseEntity<GroupMemberDto> addGroupMember(@PathVariable("groupId") Long groupId, @RequestBody UserDto user) {
 

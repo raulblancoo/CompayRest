@@ -110,7 +110,7 @@
   "cancel": "Cancelar",
   "add": "Añadir",
   "adding": "Añadiendo",
-  "current_members": "Miembros actuales"
-
+  "current_members": "Miembros actuales",
+  "no_user_error" : "El usuario actual está desloggeado, prueba a iniciar sesión otra vez."
 
 }

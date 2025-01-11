@@ -134,8 +134,6 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
             }
         }
 
-        console.log(finalShares)
-
         setErrors(validationErrors);
         return validationErrors.length === 0; // Retorna true si no hay errores
     };
@@ -238,7 +236,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                         >
                             <option value="PARTESIGUALES">{t("equal_shares")}</option>
                             <option value="PARTESDESIGUALES">{t("unequal_shares")}</option>
-                            <option value="PORCENTAJES">{t("porcentages")}</option>
+                            <option value="PORCENTAJES">{t("percentages")}</option>
                         </select>
                     </div>
 

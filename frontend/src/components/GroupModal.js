@@ -69,7 +69,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
         const existingEmails = emails;
 
         const userGroups = ["Grupo1", "Grupo2"]; // Reemplaza con los grupos del usuario
-        const allowedCurrencies = ["EUR", "USD", "GBP"];
+        const allowedCurrencies = ["EUR", "USD", "GBP", "JPY"];
         const validationErrors = [];
         const regexGroupName = /^[\x20\x21-\xA8\xAD\xE0-\xED]*$/;
 
@@ -109,9 +109,8 @@ const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
             userEmails: emails,
         };
 
-        console.log("Data enviada:", data);
         onSubmit(data);
-        //handleClose();
+        handleClose();
     };
 
     const handleClose = () => {
@@ -130,6 +129,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
             setCurrency("EUR");
             setEmails([]);
             setEmailInput("");
+            setErrors([]);
         }
     }, [isOpen]);
 

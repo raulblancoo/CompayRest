@@ -1,8 +1,6 @@
 import React from 'react';
 import { useTranslation } from "react-i18next";
 
-
-
 const ExpenseUnderHeader = ({ onAddMember, onShowDebts }) => {
     const { t } = useTranslation();
     return (

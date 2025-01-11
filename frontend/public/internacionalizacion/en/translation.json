@@ -147,5 +147,6 @@
   "share_method": "Share Method",
   "equal_shares": "Equal Shares",
   "unequal_shares": "Unequal Shares",
-  "errors": "Errors"
+  "errors": "Errors",
+  "no_user_error" : "The actual user is logged out. Please retry"
 }

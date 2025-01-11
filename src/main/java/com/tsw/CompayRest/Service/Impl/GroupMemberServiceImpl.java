@@ -47,16 +47,7 @@ public class GroupMemberServiceImpl implements GroupMemberService {
     }
 
     @Override
-    public boolean deleteGroupMember(Long groupId, UserDto userDto) {
-        return groupMemberRepository.findById(groupId).map(member -> {
-            groupMemberRepository.delete(member);
-            return true;
-        }).orElse(false);
-    }
-
-    @Override
     public GroupMemberDto getGroupMember(Long groupId, Long memberId) {
-        // TODO: mirar si hay mejor manera de hacerlo
         return groupMemberRepository.findByGroup_IdAndUser_Id(groupId, memberId).map(groupMemberMapper::toDto).orElse(null);
     }
 

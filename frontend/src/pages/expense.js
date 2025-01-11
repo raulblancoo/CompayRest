@@ -33,7 +33,6 @@ export function Expense() {
                 const response = await axiosInstance.get("/users/me"); // Suponemos que este endpoint devuelve el usuario autenticado
                 setUserId(response.data.id); // Almacenamos el userId en el estado
             } catch (error) {
-                console.error(t("errorFetchingUser"), error);
                 setError(t("errorFetchingUser"));
             }
         };
@@ -50,7 +49,6 @@ export function Expense() {
                 setGroup(response.data);
                 setGroupCurrency(response.data.currency); // Establecer la moneda del grupo
             } catch (error) {
-                console.error(t("errorFetchingGroups"), error);
                 setError(t("errorFetchingGroups"));
             }
         };
@@ -70,7 +68,6 @@ export function Expense() {
                     setExpenses(response.data);
                 }
             } catch (error) {
-                console.error(t("errorFetchingExpenses"), error);
                 setError(t("errorFetchingExpenses"));
             } finally {
                 setLoading(false);
@@ -111,7 +108,6 @@ export function Expense() {
             setBizumsModalOpen(true);
         } catch (error) {
             console.error(t("errorFetchingBizums"), error);
-            alert(t("errorFetchingBizums"));
         }
     };
 
@@ -121,7 +117,6 @@ export function Expense() {
 
     const handleCreateExpense = async (newExpense) => {
         if (!userId) {
-            alert(t("errorFetchingUser"));
             return;
         }
 
@@ -130,12 +125,10 @@ export function Expense() {
                 `/users/groups/${idGroup}/expenses`,
                 newExpense
             );
-            console.log(t("addExpense"), response.data);
             setExpenses((prev) => [...prev, response.data]); // Actualiza el estado de manera inmutable
             setExpenseModalOpen(false);
         } catch (error) {
             console.error(t("errorCreatingExpense"), error);
-            alert(t("errorCreatingExpense"));
         }
     };
 
