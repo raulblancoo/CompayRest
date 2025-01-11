@@ -35,10 +35,14 @@ public class UserServiceImpl implements UserService {
     }
 
     public UserDto register(SignUpDto userDto) {
-        Optional<UserModel> optionalUser = userRepository.findByEmail(userDto.email());
+        Optional<UserModel> emailUser = userRepository.findByEmail(userDto.email());
+        Optional<UserModel> usernameUser = userRepository.findByUsername(userDto.username());
 
-        if (optionalUser.isPresent()) {
-            throw new AppException("Login already exists", HttpStatus.BAD_REQUEST);
+        if (emailUser.isPresent()) {
+            throw new AppException("Email already exists", HttpStatus.BAD_REQUEST);
+        }
+        if (usernameUser.isPresent()) {
+            throw new AppException("Username already exists", HttpStatus.BAD_REQUEST);
         }
 
         UserModel user = userMapper.signUpToUser(userDto);

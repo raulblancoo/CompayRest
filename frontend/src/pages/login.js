@@ -19,7 +19,7 @@ export function Login() {
     // Función para alternar entre Login y Registro y limpiar errores
     const toggleForm = () => {
         setIsLoginActive(!isLoginActive);
-        setFormErrors({}); // Limpia los errores al cambiar de formulario
+        setFormErrors({});
     };
 
     // Manejar cambios en los campos
@@ -77,7 +77,7 @@ export function Login() {
         e.preventDefault();
         const isValid = isLoginActive ? validateLogin() : validateRegister();
 
-        if (!isValid) return; // Si no es válido, no enviar
+        if (!isValid) return;
 
         try {
             if (isLoginActive) {
@@ -90,26 +90,25 @@ export function Login() {
             } else {
                 const response = await axiosInstance.post("/register", formValues);
                 if (response.status === 200 || response.status === 201) {
-                    setIsLoginActive(true); // Cambiar a login tras registro exitoso
-                    setFormErrors({}); // Opcional: limpiar errores después del registro exitoso
+                    setIsLoginActive(true);
+                    setFormErrors({});
                 }
             }
         } catch (error) {
-            setFormErrors({ general: t("general_error") });
-          
-          //develop rbg
-           /* if (error.response && error.response.data) {
+           if (error.response && error.response.data) {
                 const { message } = error.response.data;
 
-                // Asignar errores específicos basados en el mensaje
                 if (message.toLowerCase().includes("email")) {
-                    setFormErrors({ email: message });
-                } else {
-                    setFormErrors({ general: message });
+                    setFormErrors({ email: t("email_already_exists") });
                 }
+
+                if(message.toLowerCase().includes("username")) {
+                    setFormErrors({ username: t("username_already_exists") });
+                }
+
             } else {
-                setFormErrors({ general: "Ocurrió un error. Por favor, inténtalo de nuevo." });
-            }*/
+               setFormErrors({ general: t("general_error") });
+            }
         }
     };
 
@@ -201,7 +200,7 @@ export function Login() {
                         className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-lg font-semibold text-lg"
                         type="submit"
                     >
-                        {isLoginActive ? t("submit") : t("submit")} {/* Considera cambiar a t("login") : t("register") */}
+                        {isLoginActive ? t("submit") : t("submit")}
                     </button>
                 </form>
                 {formErrors.general && (
@@ -213,7 +212,7 @@ export function Login() {
                         : t("already_account") + " "}
                     <button
                         className="text-blue-500 font-semibold"
-                        onClick={toggleForm} // Usar la función de alternancia
+                        onClick={toggleForm}
                     >
                         {isLoginActive ? t("register_here") : t("login_here")}
                     </button>

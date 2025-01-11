@@ -23,6 +23,8 @@
   "already_account": "Already have an account?",
   "login_here": "Login here",
   "general_error": "An error occurred. Please retry.",
+  "email_already_exists" : "The email address is already registered. Please log in or use a different email.",
+  "username_already_exists" : "The username is already registered.",
   "create_new_group": "Create New Group",
   "group_name": "Group Name",
   "currency": "Currency",

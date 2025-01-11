@@ -23,6 +23,8 @@
   "already_account": "¿Ya tienes una cuenta?",
   "login_here": "Inicia sesión aquí",
   "general_error": "Ocurrió un error. Por favor, inténtalo de nuevo.",
+  "email_already_exists" : "El correo electrónico ya está registrado. Por favor, inicia sesión o usa otro correo.",
+  "username_already_exists" : "El nombre de usuario ya está registrado.",
   "create_new_group": "Crear Nuevo Grupo",
   "group_name": "Nombre del Grupo",
   "currency": "Moneda",
