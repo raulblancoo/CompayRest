@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axiosInstance from "../components/axiosInstance";
 import { useTranslation } from "react-i18next"; // Importar useTranslation
 
-const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
+const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit, members }) => {
     const { t } = useTranslation(); // Inicializar useTranslation
-    const [members, setMembers] = useState([]); // Lista de miembros del grupo
     const [selectedPayer, setSelectedPayer] = useState(""); // Miembro pagador
     const [selectedMembers, setSelectedMembers] = useState([]); // Miembros seleccionados
     const [expenseName, setExpenseName] = useState("");
@@ -14,39 +12,13 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     const [errors, setErrors] = useState({});
     let finalShares = {};
 
-    const [userId, setUserId] = useState(null); // Añadido para almacenar el userId obtenido del backend;
-
-    // Obtener el userId desde el backend
+    // Actualiza los estados de pagador y miembros seleccionados cuando `members` cambia
     useEffect(() => {
-        const fetchUserId = async () => {
-            try {
-                const response = await axiosInstance.get("/users/me"); // Suponemos que este endpoint devuelve el usuario autenticado
-                setUserId(response.data.id); // Almacenamos el userId en el estado
-            } catch (error) {
-                console.error("Error al obtener el userId:", error);
-            }
-        };
-
-        fetchUserId();
-    }, []);
-
-    useEffect(() => {
-        if (!groupId || !userId) return;
-
-        const fetchMembers = async () => {
-            try {
-                const response = await axiosInstance.get(`/users/groups/${groupId}/members`);
-                const membersData = response.data;
-                setMembers(membersData);
-                setSelectedPayer(userId); // Usamos el userId del backend como el pagador predeterminado
-                setSelectedMembers(membersData.map((member) => member.email));
-            } catch (error) {
-                console.error("Error fetching members:", error);
-            }
-        };
-
-        fetchMembers();
-    }, [groupId, userId]);
+        if (members.length > 0) {
+            setSelectedPayer(members[0]?.id || ""); // Establece el primer miembro como pagador por defecto
+            setSelectedMembers(members.map((member) => member.email)); // Selecciona todos los miembros
+        }
+    }, [members]);
 
     const handleMemberSelection = (email) => {
         setSelectedMembers((prev) =>
@@ -64,7 +36,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
     };
 
     const resetForm = () => {
-        setSelectedPayer(userId); // Restablecemos el pagador al userId del backend
+        setSelectedPayer(members[0]?.id || ""); // Restablecemos el pagador al primer miembro
         setSelectedMembers(members.map((member) => member.email));
         setExpenseName("");
         setAmount("");
@@ -79,23 +51,22 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
         const totalAmount = parseFloat(amount);
 
         // Validar monto positivo
-        if (!totalAmount ) {
+        if (!totalAmount) {
             validationErrors.push(t("amount_empty"));
-        }else if(totalAmount <= 0){
+        } else if (totalAmount <= 0) {
             validationErrors.push(t("amount_positive_error"));
-        }
-        else if (!regexDecimales.test(amount)){
+        } else if (!regexDecimales.test(amount)) {
             validationErrors.push(t("bad_decimal"));
         }
 
-        // Validaciones
+        // Validaciones de nombre del gasto
         if (!expenseName) {
             validationErrors.push(t("exName_error"));
-        }else if(expenseName.length > 30){
+        } else if (expenseName.length > 30) {
             validationErrors.push(t("exName_toolong"));
-
         }
 
+        // Validaciones según método de compartición
         if (shareMethod === "PARTESIGUALES") {
             const equalShare = totalAmount / selectedMembers.length;
             finalShares = selectedMembers.reduce((acc, email) => {
@@ -106,14 +77,14 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             const totalShares = Object.values(shares).reduce((sum, share) => sum + share, 0);
             if (totalShares !== totalAmount) {
                 validationErrors.push(t("shares_sum_error"));
-            }else {
+            } else {
                 finalShares = { ...shares };
             }
         } else if (shareMethod === "PORCENTAJES") {
             const totalPercentage = Object.values(shares).reduce((sum, percentage) => sum + percentage, 0);
             if (totalPercentage !== 100) {
                 validationErrors.push(t("percentages_sum_error"));
-            }else {
+            } else {
                 finalShares = selectedMembers.reduce((acc, email) => {
                     acc[email] = parseFloat(((totalAmount * shares[email]) / 100).toFixed(2));
                     return acc;
@@ -121,12 +92,9 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
             }
         }
 
-
-
         setErrors(validationErrors);
         return validationErrors.length === 0; // Retorna true si no hay errores
     };
-
 
     const handleSubmit = () => {
         if (!validateForm()) return; // Detenemos el envío si hay errores
@@ -233,7 +201,6 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit }) => {
                             <option value="PORCENTAJES">{t("percentages")}</option>
                         </select>
                     </div>
-
 
                     {selectedMembers.length > 0 && shareMethod !== "PARTESIGUALES" && (
                         <div className="mb-4">

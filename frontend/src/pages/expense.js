@@ -201,8 +201,10 @@ export function Expense() {
                 isOpen={isExpenseModalOpen}
                 onClose={() => setExpenseModalOpen(false)}
                 groupId={idGroup}
+                members={members}
                 onSubmit={handleCreateExpense}
             />
+
 
             {editingExpense && (
                 <EditExpenseModal
