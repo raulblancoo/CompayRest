@@ -73,6 +73,10 @@ export function Groups() {
 
             }
         }
+
+    };
+    const clearError = () => {
+        setCreateGroupError(null);
     };
 
     return (
@@ -104,6 +108,7 @@ export function Groups() {
                 onClose={handleCloseModal}
                 onSubmit={handleCreateGroup}
                 error={createGroupError} // Pasar el error al modal
+                clearError={clearError}
             />
         </>
     );
