@@ -38,6 +38,9 @@ ComPay es una innovadora aplicación de gestión de pagos diseñada para facilit
    ```bash
    docker-compose up --build
 
+### 👁️ Acceder a la aplicación (Compay ₹)
+
+Estará disponible en http://localhost:3000/
 
 ## 🔗 Developers
 - Raúl Blanco Garrido (https://github.com/raulblancoo)
