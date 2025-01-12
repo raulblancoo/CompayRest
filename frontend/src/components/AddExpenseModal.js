@@ -126,7 +126,7 @@ const AddExpenseModal = ({ isOpen, onClose, groupId, onSubmit, members }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white rounded-lg shadow-lg w-96 p-6 max-h-[70vh] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-4">{t("create_new_expense")}</h2>
                 <form>
                     {/* Selector: Pagador */}

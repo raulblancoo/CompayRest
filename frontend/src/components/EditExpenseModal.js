@@ -174,7 +174,7 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white rounded-lg shadow-lg w-96 p-6">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 max-h-[80vh] overflow-y-auto">
                 <h2 className="text-xl font-semibold mb-4">{t("expense_edit")}</h2>
                 <form>
                     <div className="mb-4">
@@ -279,19 +279,19 @@ const EditExpenseModal = ({ isOpen, onClose, groupId, expense, onSubmit }) => {
                         </div>
                     )}
 
+                    {/* Botones */}
                     <div className="flex justify-end gap-2 mt-4">
                         <button
                             onClick={onClose}
                             className="bg-gray-300 px-4 py-2 rounded-md"
                         >
-                            Cerrar
+                            {t("close")}
                         </button>
                         <button
-                            type="button"
                             onClick={handleSubmit}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-md"
+                            className="bg-sky-500 hover:bg-cyan-700 text-white px-4 py-2 rounded-md"
                         >
-                            Guardar
+                            {t("submit")}
                         </button>
                     </div>
                 </form>
