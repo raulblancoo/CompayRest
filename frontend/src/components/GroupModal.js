@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import axiosInstance from "./axiosInstance"; // Importa las validaciones
 
-const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
+const GroupModal = ({ isOpen, onClose, onSubmit, error, clearError }) => {
     const { t } = useTranslation();
     const [groupName, setGroupName] = useState("");
     const [currency, setCurrency] = useState("EUR");
@@ -66,6 +66,8 @@ const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
     };
 
     const handleSubmit = () => {
+        clearError();
+        setErrors([]);
         const existingEmails = emails;
 
         const userGroups = ["Grupo1", "Grupo2"]; // Reemplaza con los grupos del usuario
@@ -110,7 +112,6 @@ const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
         };
 
         onSubmit(data);
-        handleClose();
     };
 
     const handleClose = () => {
@@ -119,6 +120,7 @@ const GroupModal = ({ isOpen, onClose, onSubmit, error }) => {
         setEmails([]);
         setEmailInput("");
         setErrors([]);
+        clearError();
         onClose();
     };
 
